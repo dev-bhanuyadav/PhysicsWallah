@@ -73,7 +73,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex max-w-[1500px] w-full mx-auto relative">
+      <div className="flex-1 flex w-full relative overflow-hidden">
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div 
@@ -84,8 +84,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Sidebar */}
         <aside className={`
-          fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-gray-200 overflow-y-auto pt-6 pb-10 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
-          ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+          fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-gray-200 overflow-y-auto pt-6 pb-10 transition-all duration-300 
+          lg:static lg:translate-x-0 
+          ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
         `}>
           <div className="flex items-center justify-between px-6 mb-6 lg:hidden">
             <span className="font-bold text-lg">Menu</span>

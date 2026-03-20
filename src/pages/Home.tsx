@@ -219,38 +219,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white font-['Inter',sans-serif] text-[#1F2937]">
 
-      {/* ══ NAV ══════════════════════════════════════════════ */}
-      <nav className={`fixed inset-x-0 top-0 z-50 bg-white transition-shadow duration-200 ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
-        <div className="max-w-[1200px] mx-auto px-4 flex items-center h-[64px] gap-3">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src={IMG.logo} alt="AlManer" className="h-10 w-10 object-contain rounded-full" />
-            <span className="text-[20px] font-black tracking-tight text-[#1F2937]">AlManer</span>
-          </div>
-
-
-          <div className="hidden xl:flex flex-1 gap-0.5">
-            {NAV_LINKS.map(l => (
-              <a key={l} href="#" className="px-3 py-2 text-[13px] font-semibold text-[#374151] hover:text-[#5A4BDA] hover:bg-[#F5F3FF] rounded-lg transition-all whitespace-nowrap">
-                {l}
-              </a>
-            ))}
-          </div>
-          <div className="flex-1 xl:hidden" />
-          <button onClick={openLogin} className="hidden sm:block bg-[#5A4BDA] text-white text-[14px] font-bold px-6 py-2.5 rounded-xl hover:bg-[#4B3EBF] active:scale-95 transition-all flex-shrink-0">
-            Login/Register
-          </button>
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="xl:hidden p-2 text-gray-600">
-            {mobileOpen ? <X size={22}/> : <Menu size={22}/>}
-          </button>
-        </div>
-        {mobileOpen && (
-          <div className="xl:hidden bg-white border-t px-4 py-3 flex flex-col gap-1 shadow-xl">
-            {NAV_LINKS.map(l => <a key={l} href="#" className="py-3 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg">{l}</a>)}
-            <button onClick={() => { openLogin(); setMobileOpen(false); }} className="mt-2 bg-[#5A4BDA] text-white py-3.5 rounded-xl font-bold">Login / Register</button>
-          </div>
-        )}
-      </nav>
-      <div className="h-[64px]" />
+      {/* Global Header handled by Layout */}
 
       {/* ══ HERO BANNER CAROUSEL ═════════════════════════════ */}
       <div className="px-4 py-3 bg-[#EBF0FF]">

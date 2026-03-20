@@ -133,8 +133,11 @@ export default function Batches() {
     (async () => {
       setLoading(true);
       try {
-        if (!isGlobalBatchesEnabled()) seedIfEmpty();
-        const data = await listBatches();
+        let data = await listBatches();
+        if (data.length === 0) {
+          seedIfEmpty();
+          data = await listBatches();
+        }
         if (alive) setAllBatches(data);
       } finally {
         if (alive) setLoading(false);

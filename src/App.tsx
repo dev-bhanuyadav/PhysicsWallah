@@ -12,7 +12,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/batches" element={<Layout><Batches /></Layout>} />
         <Route path="/batches/:batchId" element={<Layout><BatchDetails /></Layout>} />
         <Route path="/batches/:batchId/subjects/:subjectId" element={<Layout><SubjectTopics /></Layout>} />

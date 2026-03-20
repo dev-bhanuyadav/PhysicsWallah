@@ -198,7 +198,7 @@ export default function BatchDetails() {
                      <div 
                        key={subj._id || subj.subjectId} 
                        className="border border-gray-100 bg-gray-50 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:border-blue-500/50 hover:shadow-md hover:-translate-y-0.5 transition-all text-[#1F2937]"
-                       onClick={() => navigate(`/batches/${id}/subjects/${subj._id || subj.subjectId}`, { state: { subjectName: subj.subject } })}
+                       onClick={() => navigate(`/batches/${batchId}/subjects/${subj._id || subj.subjectId}`, { state: { subjectName: subj.subject } })}
                      >
                        <div className="w-12 h-12 rounded-lg bg-[#F8F9FA] border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
                          {subj.imageId ? (
