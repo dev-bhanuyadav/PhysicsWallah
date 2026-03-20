@@ -218,7 +218,21 @@ export default async function handler(req, res) {
           });
         }
 
-        // Fallback 3: Try without organization headers (for global batches)
+        // Fallback 4: Try media-specific path (/v3/media-secure/{childId}?batchId=...)
+        if (pRes.statusCode === 404 && qs.has('childId')) {
+          const cid = qs.get('childId');
+          pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure/${cid}${finalSearch}`, {
+            method: req.method, headers, body
+          });
+          
+          if (pRes.statusCode === 404) {
+            pRes = await nodeFetch(`https://api.penpencil.co/v2/media-secure/${cid}${finalSearch}`, {
+              method: req.method, headers, body
+            });
+          }
+        }
+
+        // Fallback 5: Clean retry (no organizationId) on the final root endpoint
         if (pRes.statusCode === 404) {
           const { organizationId, ...cleanHeaders } = headers;
           pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure${finalSearch}`, {
@@ -236,7 +250,7 @@ export default async function handler(req, res) {
       }
     }
 
-    return send(res, 404, { error: 'Not found' });
+    return send(res, 404, { error: 'Not found', path });
   } catch (e) {
     console.error(e);
     return send(res, 500, { error: 'Server Error', message: e.message });
