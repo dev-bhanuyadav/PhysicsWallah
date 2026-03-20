@@ -28,6 +28,7 @@ export default function Admin() {
   const [price, setPrice] = useState<string>('');
   const [originalPrice, setOriginalPrice] = useState<string>('');
   const [imageUrl, setImageUrl] = useState('');
+  const [pw_id, setPwId] = useState('');
 
   useEffect(() => {
     let alive = true;
@@ -204,6 +205,7 @@ export default function Admin() {
       for (const rb of rawBatches) {
         // Simple mapping based on expected PW API structure
         const batchData = {
+          pwId: rb._id,
           title: rb.name || rb.title,
           subtitle: rb.batchCode || 'PW Batch',
           examLabel: rb.exam?.name || 'PW Exam',
@@ -243,7 +245,8 @@ export default function Admin() {
         startDate,
         price: Number(price),
         originalPrice: Number(originalPrice),
-        imageUrl
+        imageUrl,
+        pwId: pw_id
       }, adminKey);
       showToast('Batch added');
       setTitle(''); setSubtitle(''); setPrice(''); setOriginalPrice('');
@@ -443,6 +446,16 @@ export default function Admin() {
                   onChange={(e) => setImageUrl(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/40"
                   placeholder="https://..."
+                />
+              </label>
+
+              <label className="space-y-2 sm:col-span-2">
+                <div className="text-xs font-black tracking-widest uppercase text-white/50">PW Batch ID (Official)</div>
+                <input
+                  value={pw_id}
+                  onChange={(e) => setPwId(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/40"
+                  placeholder="e.g. 657a..."
                 />
               </label>
             </div>

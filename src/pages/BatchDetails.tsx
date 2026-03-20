@@ -25,9 +25,13 @@ export default function BatchDetails() {
     
     // 2. Fetch from real PenPencil API via Secure Node Proxy
     if (batchId) {
-      fetch(`/api/v1/pw-proxy/v3/batches/${batchId}/details?type=EXPLORE_LEAD`)
-      .then(r => r.json())
-      .then(d => {
+      listBatches().then(all => {
+        const found = all.find(x => x.id === batchId);
+        const realId = found?.pwId || batchId;
+        
+        fetch(`/api/v1/pw-proxy/v3/batches/${realId}/details?type=EXPLORE_LEAD`)
+        .then(r => r.json())
+        .then(d => {
         if (d && d.data) {
           setApiData(d.data);
           if (!d.data.description && !d.data.shortDescription) {

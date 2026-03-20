@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { listBatches } from '@/lib/batchesStorage';
 
 export default function SubjectTopics() {
   const { batchId, subjectId } = useParams<{ batchId: string, subjectId: string }>();
@@ -14,7 +15,12 @@ export default function SubjectTopics() {
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const res = await fetch(`/api/v1/pw-proxy/v2/batches/${batchId}/subject/${subjectId}/topics?page=1`);
+        // Find real PW ID from Supabase UUID
+        const batches = await listBatches();
+        const b = batches.find(x => x.id === batchId);
+        const realId = b?.pwId || batchId;
+
+        const res = await fetch(`/api/v1/pw-proxy/v2/batches/${realId}/subject/${subjectId}/topics?page=1`);
         const d = await res.json();
         if (d && d.success && d.data) {
           setTopics(d.data);

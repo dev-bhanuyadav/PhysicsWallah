@@ -1,21 +1,19 @@
 import { createHash, randomUUID, pbkdf2Sync, createDecipheriv } from 'node:crypto';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, 'data');
-const DATA_FILE = join(DATA_DIR, 'batches.json');
-
-// Supabase config (Hardcoded as per user request for immediate fix)
+// Supabase config
 const supabaseUrl = 'https://wokvqlueeuxwqkzjwdgq.supabase.co';
 const supabaseAnonKey = 'sb_publishable_Jxd-JJ87Vz6Fk5bFc1mQ6w_lK29j27y';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Crypto config for Token Encryption
 const CRYPTO_PASS = "AlManer-Secure-Key-2025-PW-Clone";
 const CRYPTO_SALT = "almaner-salt";
 
+// Admin Key Hash (pw-admin-2026)
+const expectedKeyHash = '01e669848c66516767163aa30b02530e7d21f0b19376bf5ba899216dbe594ba5';
+
+// Helper: Decrypt token from frontend
 function decryptToken(encB64) {
   if (!encB64 || encB64.length < 30) return encB64;
   try {
@@ -35,78 +33,13 @@ function decryptToken(encB64) {
   }
 }
 
-const expectedKeyHash =
-  process.env.ADMIN_KEY_SHA256 ||
-  '01e669848c66516767163aa30b02530e7d21f0b19376bf5ba899216dbe594ba5';
-
-async function getSetting(key) {
-  try {
-    const { data, error } = await supabase.from('settings')
-      .select('value')
-      .eq('key', key)
-      .order('updated_at', { ascending: false })
-      .limit(1);
-    if (error || !data || data.length === 0) return null;
-    return data[0].value;
-  } catch {
-    return null;
-  }
-}
-
-async function setSetting(key, value) {
-  try {
-    const { error } = await supabase.from('settings').upsert({ key, value, updated_at: new Date() });
-    return !error;
-  } catch {
-    return false;
-  }
-}
-
-function decryptToken(encB64) {
-  if (!encB64 || encB64.length < 30) return encB64;
-  try {
-    const combined = Buffer.from(encB64, 'base64');
-    const iv = combined.subarray(0, 12);
-    const tag = combined.subarray(combined.length - 16);
-    const cts = combined.subarray(12, combined.length - 16);
-    const key = pbkdf2Sync(CRYPTO_PASS, CRYPTO_SALT, 100000, 32, 'sha256');
-    const decipher = createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(tag);
-    let dec = decipher.update(cts, undefined, 'utf8');
-    dec += decipher.final('utf8');
-    return dec;
-  } catch (e) {
-    return encB64;
-  }
-}
-
+// Helper: SHA256
 function sha256(s) {
   return createHash('sha256').update(String(s)).digest('hex');
 }
 
-async function readJson() {
-  try {
-    const raw = await readFile(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-async function writeJson(arr) {
-  // NOTE: On Vercel, this will NOT persist correctly across requests.
-  // Filesystem is read-only or ephemeral. Use a database for persistent storage.
-  try {
-    await mkdir(DATA_DIR, { recursive: true });
-    await writeFile(DATA_FILE, JSON.stringify(arr, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Failed to write JSON (expected on Vercel):', e);
-  }
-}
-
+// Helper: Response sender
 function send(res, status, body, headers = {}) {
-  const json = JSON.stringify(body);
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'access-control-allow-origin': '*',
@@ -114,33 +47,31 @@ function send(res, status, body, headers = {}) {
     'access-control-allow-headers': 'content-type,x-admin-key',
     ...headers,
   });
-  res.end(json);
+  res.end(JSON.stringify(body));
 }
 
+// Helper: Read request body
 async function readBody(req) {
   return await new Promise((resolve, reject) => {
     let data = '';
-    req.on('data', (c) => {
-      data += c;
-      if (data.length > 1_000_000) req.destroy();
-    });
+    req.on('data', (c) => { data += c; if (data.length > 1000000) req.destroy(); });
     req.on('end', () => resolve(data));
     req.on('error', reject);
   });
 }
 
+// Helper: Check Admin
 function requireAdmin(req) {
   const key = (req.headers['x-admin-key'] || '').trim();
   return sha256(key) === expectedKeyHash;
 }
 
-function isValidBatchInput(x) {
-  if (!x || typeof x !== 'object') return false;
-  const fields = ['title', 'subtitle', 'examLabel', 'language', 'startDate', 'price', 'originalPrice', 'imageUrl'];
-  for (const f of fields) {
-    if (!(f in x)) return false;
-  }
-  return true;
+// Helper: Get Supabase Setting
+async function getSetting(key) {
+  try {
+    const { data, error } = await supabase.from('settings').select('value').eq('key', key).order('updated_at', { ascending: false }).limit(1);
+    return (data && data.length) ? data[0].value : null;
+  } catch { return null; }
 }
 
 export default async function handler(req, res) {
@@ -150,48 +81,18 @@ export default async function handler(req, res) {
 
     const url = new URL(req.url, `http://${req.headers.host}`);
     const path = url.pathname;
-    console.log(`[Proxy] ${req.method} ${path}`);
 
-    // Route matching
-    // --- Batches Health / Ping ---
-    if (path.endsWith('/health')) {
-      return send(res, 200, { status: 'ok', time: new Date() });
-    }
+    // --- Health ---
+    if (path.endsWith('/health')) return send(res, 200, { status: 'ok' });
 
-    // --- Media Secure Proxy ---
-    if (path.endsWith('/media-secure')) {
-      const b = url.searchParams.get('b');
-      if (!b) return send(res, 400, { error: 'Batch ID (b) required' });
-      
-      const targetUrl = `https://api.penpencil.co/v3/batches/${b}/media-secure${url.search}`;
-
-      try {
-        const proxyRes = await fetch(targetUrl, {
-          method: 'GET',
-          headers: {
-            'client-type': 'WEB'
-          }
-        });
-        
-        const contentType = proxyRes.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const data = await proxyRes.json();
-          return send(res, proxyRes.status, data);
-        } else {
-          const text = await proxyRes.text();
-          return send(res, proxyRes.status, { text, contentType });
-        }
-      } catch (e) {
-        return send(res, 500, { error: 'Media Proxy Error: ' + e.message, url: targetUrl });
-      }
-    }
-
+    // --- Batches API ---
     if (req.method === 'GET' && path.endsWith('/batches')) {
       const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
       if (error) return send(res, 500, { error: 'Supabase Fetch Error', details: error });
       
       const mapped = (data || []).map(b => ({
         id: b.id,
+        pwId: b.pw_id || null,
         title: b.title,
         subtitle: b.subtitle,
         examLabel: b.exam_label,
@@ -207,16 +108,9 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST' && path.endsWith('/batches')) {
       if (!requireAdmin(req)) return send(res, 401, { error: 'Unauthorized' });
-      const raw = await readBody(req);
-      let body = null;
-      try {
-        body = raw ? JSON.parse(raw) : null;
-      } catch {
-        return send(res, 400, { error: 'Invalid JSON' });
-      }
-      if (!isValidBatchInput(body)) return send(res, 400, { error: 'Invalid input' });
-
+      const body = JSON.parse(await readBody(req));
       const { data, error } = await supabase.from('batches').insert([{
+        pw_id: body.pwId || null,
         title: body.title,
         subtitle: body.subtitle,
         exam_label: body.examLabel,
@@ -226,83 +120,70 @@ export default async function handler(req, res) {
         original_price: body.originalPrice,
         image_url: body.imageUrl
       }]).select().single();
-      
       if (error) return send(res, 500, { error: 'Supabase Insert Error', details: error });
       return send(res, 200, data);
     }
 
-    if (req.method === 'DELETE' && (path.includes('/batches/'))) {
+    if (req.method === 'DELETE' && path.includes('/batches/')) {
       if (!requireAdmin(req)) return send(res, 401, { error: 'Unauthorized' });
-      const id = decodeURIComponent(path.split('/batches/').pop() || '');
-      if (!id) return send(res, 400, { error: 'Invalid id' });
-      
+      const id = path.split('/batches/').pop();
       const { error } = await supabase.from('batches').delete().eq('id', id);
-      if (error) return send(res, 500, { error: 'Supabase Delete Error', details: error });
+      if (error) return send(res, 500, { error: 'Supabase Delete Error' });
       return send(res, 200, { ok: true });
     }
 
-    // --- Admin Settings (Token) ---
+    // --- Token Management ---
     if (path.endsWith('/admin/settings/token')) {
       if (req.method === 'GET') {
         const token = await getSetting('pw_token');
-        return send(res, 200, { token: token || process.env.PW_TOKEN || '' });
+        return send(res, 200, { token: token || '' });
       }
       if (req.method === 'POST') {
         if (!requireAdmin(req)) return send(res, 401, { error: 'Invalid Admin Key' });
-        const raw = await readBody(req);
-        let body = null;
-        try { body = JSON.parse(raw); } catch { return send(res, 400, { error: 'Invalid JSON' }); }
-        if (!body.token) return send(res, 400, { error: 'Token required' });
-        
+        const body = JSON.parse(await readBody(req));
         const { error } = await supabase.from('settings').upsert({ key: 'pw_token', value: body.token, updated_at: new Date().toISOString() });
-        if (!error) return send(res, 200, { ok: true });
-        else return send(res, 500, { error: 'Failed to save token to Supabase', details: error });
+        if (error) return send(res, 500, { error: 'Failed to save token' });
+        return send(res, 200, { ok: true });
       }
     }
 
-    // --- PW Proxy ---
+    // --- Proxy ---
     if (path.includes('/pw-proxy/')) {
       const targetPath = path.split('/pw-proxy/').pop()?.replace(/^v1\//, '') || '';
       const targetUrl = `https://api.penpencil.co/${targetPath}${url.search}`;
       
-      const tokenRaw = (await getSetting('pw_token')) || process.env.PW_TOKEN || '';
+      const tokenRaw = await getSetting('pw_token');
       let token = decryptToken(tokenRaw);
-      if (token.toLowerCase().startsWith('bearer ')) {
-        token = token.substring(7).trim();
-      }
+      if (token && token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
 
-      if (!token) return send(res, 401, { error: 'PW Bearer Token not configured in Admin panel or Env' });
+      if (!token) return send(res, 401, { error: 'PW Token missing. Add it in Admin panel.' });
 
-      try {
-        const bodyData = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
-        const proxyRes = await fetch(targetUrl, {
-          method: req.method,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'client-type': 'WEB',
-            'client-id': '5eb393ee95fab7468a79d189',
-            'organizationId': '5eb393ee95fab7468a79d189',
-            'Content-Type': 'application/json'
-          },
-          body: bodyData
-        });
-        
-        const contentType = proxyRes.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const data = await proxyRes.json();
-          return send(res, proxyRes.status, data);
-        } else {
-          const text = await proxyRes.text();
-          return send(res, proxyRes.status, { text, contentType });
-        }
-      } catch (e) {
-        return send(res, 500, { error: 'Proxy Fetch Error: ' + e.message, url: targetUrl });
+      const bodyData = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
+      const proxyRes = await fetch(targetUrl, {
+        method: req.method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'client-type': 'WEB',
+          'client-id': '5eb393ee95fab7468a79d189',
+          'organizationId': '5eb393ee95fab7468a79d189',
+          'Content-Type': 'application/json'
+        },
+        body: bodyData
+      });
+      
+      const contentType = proxyRes.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await proxyRes.json();
+        return send(res, proxyRes.status, data);
+      } else {
+        const text = await proxyRes.text();
+        return send(res, proxyRes.status, { text, contentType });
       }
     }
 
     return send(res, 404, { error: 'Not found' });
   } catch (e) {
-    console.error('Handler Error:', e);
-    return send(res, 500, { error: 'Server error: ' + e.message, stack: e.stack });
+    console.error('Server error:', e);
+    return send(res, 500, { error: 'Internal Server Error', message: e.message });
   }
 }

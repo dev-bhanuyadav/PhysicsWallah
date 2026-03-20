@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 export type Batch = {
   id: string;
+  pwId?: string;
   title: string;
   subtitle: string;
   examLabel: string;
@@ -80,6 +81,7 @@ export function isGlobalBatchesEnabled() {
 
 type BatchRow = {
   id: string;
+  pw_id: string;
   title: string;
   subtitle: string;
   exam_label: string;
@@ -96,6 +98,7 @@ function rowToBatch(r: BatchRow): Batch {
     typeof r.created_at === 'number' ? r.created_at : new Date(r.created_at).getTime();
   return {
     id: r.id,
+    pwId: r.pw_id,
     title: r.title,
     subtitle: r.subtitle,
     examLabel: r.exam_label,
@@ -144,6 +147,7 @@ export async function createBatch(
   if (api) return api;
   if (!supabase) return addBatch(input);
   const row = {
+    pw_id: (input as any).pwId || null,
     title: input.title,
     subtitle: input.subtitle,
     exam_label: input.examLabel,

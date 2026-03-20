@@ -5,6 +5,7 @@ import {
   Maximize, Minimize, Settings, ChevronRight, Check 
 } from 'lucide-react';
 import { decryptToken } from '@/utils/cryptoUtils';
+import { listBatches } from '@/lib/batchesStorage';
 
 declare global { interface Window { Hls?: any; } }
 
@@ -109,7 +110,11 @@ export default function VideoPlayer() {
           }
         }
         
-        const res = await fetch(`/api/v1/media-secure?b=${batchId}&s=${subjectId}&c=${childId}`, { headers });
+        const batches = await listBatches();
+        const b = batches.find(x => x.id === batchId);
+        const realId = b?.pwId || batchId;
+
+        const res = await fetch(`/api/v1/media-secure?b=${realId}&s=${subjectId}&c=${childId}`, { headers });
         
         let meta;
         try { meta = await res.json(); } catch(e) {}
