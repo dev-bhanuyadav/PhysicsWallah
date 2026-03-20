@@ -67,34 +67,32 @@ export async function listBatches(): Promise<Batch[]> {
     try {
       const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
       if (!error && data) {
+          // Map correctly checking for both created_at formats
         supabaseBatches = data.map((r: any) => ({
           id: r.id, pwId: r.pw_id, title: r.title, subtitle: r.subtitle,
           examLabel: r.exam_label, language: r.language, startDate: r.start_date,
           price: r.price, originalPrice: r.original_price, imageUrl: r.image_url,
-          createdAt: new Date(r.created_at).getTime()
+          createdAt: new Date(r.created_at || Date.now()).getTime()
         }));
+      } else if (error) {
+          console.error("Supabase Error:", error);
       }
     } catch (e) {
       console.error("Supabase fetch failed:", e);
     }
   }
 
-  // 3. Fallback to Local if both fail and we have nothing
-  if (renderBatches.length === 0 && supabaseBatches.length === 0) {
-    return loadBatches();
-  }
-
-  // 4. Merge results (preferring Render IDs if they conflict, though unlikely)
+  // Final Merged Results
   const merged = [...renderBatches];
   const renderTitles = new Set(renderBatches.map(b => b.title.toLowerCase()));
   
   for (const sb of supabaseBatches) {
-    // Only add Supabase batch if it's not already in Render list (by title to avoid dupes)
     if (!renderTitles.has(sb.title.toLowerCase())) {
         merged.push(sb);
     }
   }
 
+  if (merged.length === 0) return loadBatches();
   return merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
