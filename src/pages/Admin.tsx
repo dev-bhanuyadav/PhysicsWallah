@@ -76,6 +76,7 @@ export default function Admin() {
     }
   };
 
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex items-center justify-center px-6">
         {toast && (
