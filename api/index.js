@@ -19,9 +19,13 @@ const expectedKeyHash =
 
 async function getSetting(key) {
   try {
-    const { data, error } = await supabase.from('settings').select('value').eq('key', key).single();
-    if (error || !data) return null;
-    return data.value;
+    const { data, error } = await supabase.from('settings')
+      .select('value')
+      .eq('key', key)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0].value;
   } catch {
     return null;
   }
@@ -232,6 +236,8 @@ export default async function handler(req, res) {
           headers: {
             'Authorization': `Bearer ${token}`,
             'client-type': 'WEB',
+            'client-id': '5eb393ee95fab7468a79d189',
+            'organizationId': '5eb393ee95fab7468a79d189',
             'Content-Type': 'application/json'
           },
           body: bodyData
