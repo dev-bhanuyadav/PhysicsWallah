@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const expectedKeyHash =
   process.env.ADMIN_KEY_SHA256 ||
-  '23d47445adfb8991789b459b6ba1b974d727d310aa9d80b7c2875b9430c0ba25';
+  '277839a853d9eb79ebd2fb5dd66e929021c8948721cd2aabc6e2be42da0a2d5e';
 
 async function getSetting(key) {
   try {
@@ -143,9 +143,22 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET' && path.endsWith('/batches')) {
-      const batches = await readJson();
-      batches.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-      return send(res, 200, batches);
+      const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
+      if (error) return send(res, 500, { error: 'Supabase Fetch Error', details: error });
+      
+      const mapped = (data || []).map(b => ({
+        id: b.id,
+        title: b.title,
+        subtitle: b.subtitle,
+        examLabel: b.exam_label,
+        language: b.language,
+        startDate: b.start_date,
+        price: Number(b.price),
+        originalPrice: Number(b.original_price),
+        imageUrl: b.image_url,
+        createdAt: new Date(b.created_at).getTime()
+      }));
+      return send(res, 200, mapped);
     }
 
     if (req.method === 'POST' && path.endsWith('/batches')) {
@@ -159,23 +172,28 @@ export default async function handler(req, res) {
       }
       if (!isValidBatchInput(body)) return send(res, 400, { error: 'Invalid input' });
 
-      const batches = await readJson();
-      const next = {
-        id: randomUUID(),
-        ...body,
-        createdAt: Date.now(),
-      };
-      await writeJson([next, ...batches]);
-      return send(res, 200, next);
+      const { data, error } = await supabase.from('batches').insert([{
+        title: body.title,
+        subtitle: body.subtitle,
+        exam_label: body.examLabel,
+        language: body.language,
+        start_date: body.startDate,
+        price: body.price,
+        original_price: body.originalPrice,
+        image_url: body.imageUrl
+      }]).select().single();
+      
+      if (error) return send(res, 500, { error: 'Supabase Insert Error', details: error });
+      return send(res, 200, data);
     }
 
     if (req.method === 'DELETE' && (path.includes('/batches/'))) {
       if (!requireAdmin(req)) return send(res, 401, { error: 'Unauthorized' });
       const id = decodeURIComponent(path.split('/batches/').pop() || '');
       if (!id) return send(res, 400, { error: 'Invalid id' });
-      const batches = await readJson();
-      const next = batches.filter((b) => b && b.id !== id);
-      await writeJson(next);
+      
+      const { error } = await supabase.from('batches').delete().eq('id', id);
+      if (error) return send(res, 500, { error: 'Supabase Delete Error', details: error });
       return send(res, 200, { ok: true });
     }
 
