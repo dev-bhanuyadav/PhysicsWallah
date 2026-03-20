@@ -164,7 +164,20 @@ export default async function handler(req, res) {
     }
 
     if (path.includes('/pw-proxy/')) {
-      const target = path.split('/pw-proxy/').pop()?.replace(/^v1\//, '') || '';
+      let target = path.split('/pw-proxy/').pop()?.replace(/^v1\//, '') || '';
+      
+      // Safety Net: Rewrite v3 media-secure to v2 and map params
+      if (target.includes('media-secure')) {
+        target = target.replace('v3/', 'v2/');
+      }
+
+      const search = url.search || '';
+      const qs = new URLSearchParams(search);
+      if (qs.has('b')) qs.set('batchId', qs.get('b') || '');
+      if (qs.has('s')) qs.set('subjectId', qs.get('s') || '');
+      if (qs.has('c')) qs.set('childId', qs.get('c') || '');
+      const finalSearch = qs.toString() ? `?${qs.toString()}` : '';
+
       const pinId = await getProxyToken();
       if (!pinId) return send(res, 401, { error: 'Login required' });
 
@@ -172,7 +185,7 @@ export default async function handler(req, res) {
       const headers = { ...commonHeaders, 'Authorization': `Bearer ${pinId}` };
       if (body) headers['Content-Type'] = 'application/json';
 
-      const pRes = await nodeFetch(`https://api.penpencil.co/${target}${url.search}`, {
+      const pRes = await nodeFetch(`https://api.penpencil.co/${target}${finalSearch}`, {
         method: req.method,
         headers,
         body

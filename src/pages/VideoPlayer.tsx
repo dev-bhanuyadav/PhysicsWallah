@@ -114,7 +114,8 @@ export default function VideoPlayer() {
         const b = batches.find(x => x.id === batchId);
         const realId = b?.pwId || batchId;
 
-        const res = await fetch(`/api/v1/pw-proxy/v2/batches/${realId}/media-secure?batchId=${realId}&subjectId=${subjectId}&childId=${childId}`, { headers });
+        console.log(`[VideoPlayer] Initializing v2-secure-stream-fix for childId: ${childId}`);
+        const res = await fetch(`/api/v1/pw-proxy/v2/batches/${realId}/media-secure?batchId=${realId}&subjectId=${subjectId}&childId=${childId}&_v=${Date.now()}`, { headers });
         
         let meta;
         try { meta = await res.json(); } catch(e) {}
