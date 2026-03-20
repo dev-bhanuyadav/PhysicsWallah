@@ -138,24 +138,6 @@ export default async function handler(req, res) {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0'
     };
 
-
-    if (path.includes('/media-secure')) {
-      const b = url.searchParams.get('b') || url.searchParams.get('batchId') || path.split('/batches/').pop()?.split('/')[0];
-      const s = url.searchParams.get('s') || url.searchParams.get('subjectId');
-      const c = url.searchParams.get('c') || url.searchParams.get('childId');
-      
-      if (!b) return send(res, 400, { error: 'Batch ID required', path });
-      
-      const pinId = await getProxyToken();
-      const headers = { ...commonHeaders, 'Authorization': `Bearer ${pinId}` };
-      
-      const targetUrl = `https://api.penpencil.co/v2/batches/${b}/media-secure?batchId=${b}&subjectId=${s || ''}&childId=${c || ''}`;
-      
-      const pRes = await nodeFetch(targetUrl, { method: 'GET', headers });
-      const data = await pRes.json();
-      return send(res, pRes.statusCode || 200, data);
-    }
-
     if (req.method === 'GET' && path.endsWith('/batches')) {
       const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
       if (error) return send(res, 500, { error: 'Supabase Error' });
@@ -180,39 +162,61 @@ export default async function handler(req, res) {
       return send(res, 200, data);
     }
 
+    if (req.method === 'GET' && path.endsWith('/settings')) {
+      const key = url.searchParams.get('key');
+      if (!key) return send(res, 400, { error: 'Key required' });
+      const val = await getSetting(key);
+      return send(res, 200, { key, value: val });
+    }
+
+    if (req.method === 'POST' && path.endsWith('/settings')) {
+      const authKey = (req.headers['x-admin-key'] || '').trim();
+      if (sha256(authKey) !== expectedKeyHash) return send(res, 401, { error: 'Unauthorized' });
+      const body = JSON.parse(await readBody(req));
+      const { error } = await supabase.from('settings').upsert({ key: body.key, value: body.value }, { onConflict: 'key' });
+      if (error) return send(res, 500, { error: 'Upsert Error' });
+      return send(res, 200, { success: true });
+    }
+
     if (path.includes('/pw-proxy/')) {
       let target = path.split('/pw-proxy/').pop()?.replace(/^v1\//, '') || '';
       
-      // Safety Net: Rewrite v3 media-secure to v2 and map params
-      if (target.includes('media-secure')) {
-        target = target.replace('v3/', 'v2/');
-      }
-
+      // Safety Net: Map short params to long for media-secure
       const search = url.search || '';
       const qs = new URLSearchParams(search);
-      if (qs.has('b')) qs.set('batchId', qs.get('b') || '');
-      if (qs.has('s')) qs.set('subjectId', qs.get('s') || '');
-      if (qs.has('c')) qs.set('childId', qs.get('c') || '');
+      if (target.includes('media-secure')) {
+        if (qs.has('b')) qs.set('batchId', qs.get('b') || '');
+        if (qs.has('s')) qs.set('subjectId', qs.get('s') || '');
+        if (qs.has('c')) qs.set('childId', qs.get('c') || '');
+      }
       const finalSearch = qs.toString() ? `?${qs.toString()}` : '';
 
       const pinId = await getProxyToken();
       if (!pinId) return send(res, 401, { error: 'Login required' });
 
-      const body = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
       const headers = { ...commonHeaders, 'Authorization': `Bearer ${pinId}` };
+      const body = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
       if (body) headers['Content-Type'] = 'application/json';
 
-      const pRes = await nodeFetch(`https://api.penpencil.co/${target}${finalSearch}`, {
-        method: req.method,
-        headers,
-        body
+      // Fallback Strategy for media-secure
+      let pRes = await nodeFetch(`https://api.penpencil.co/${target}${finalSearch}`, {
+        method: req.method, headers, body
       });
+
+      // If 404 and is media-secure v2, try v3 (or vice-versa)
+      if (pRes.statusCode === 404 && target.includes('media-secure')) {
+        const altTarget = target.includes('/v2/') ? target.replace('/v2/', '/v3/') : target.replace('/v3/', '/v2/');
+        pRes = await nodeFetch(`https://api.penpencil.co/${altTarget}${finalSearch}`, {
+          method: req.method, headers, body
+        });
+      }
 
       const cType = pRes.headers.get('content-type') || '';
       if (cType.includes('application/json')) {
         return send(res, pRes.statusCode || 200, await pRes.json());
       } else {
-        return send(res, pRes.statusCode || 200, { text: await pRes.text(), contentType: cType });
+        const text = await pRes.text();
+        return send(res, pRes.statusCode || 200, { success: false, statusCode: pRes.statusCode, data: text });
       }
     }
 
