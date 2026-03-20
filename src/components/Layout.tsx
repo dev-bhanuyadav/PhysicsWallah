@@ -12,7 +12,12 @@ import {
   ChevronRight,
   User,
   Menu,
-  X
+  X,
+  BookOpen,
+  MonitorPlay,
+  ClipboardList as DppIcon,
+  Store,
+  Users
 } from 'lucide-react';
 import WelcomeModal from './WelcomeModal';
 
@@ -85,28 +90,60 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Sidebar - HIDDEN ON HOME PAGE */}
         {location.pathname !== '/' && (
           <aside className={`
-            fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-gray-200 overflow-y-auto pt-6 pb-10 transition-all duration-300 
+            fixed inset-y-0 left-0 z-50 w-[240px] bg-white border-r border-gray-100 overflow-y-auto pt-6 pb-10 transition-all duration-300 
             lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:translate-x-0 
             ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
           `}>
             <div className="flex items-center justify-between px-6 mb-6 lg:hidden">
-              <span className="font-bold text-lg">Menu</span>
+              <span className="font-bold text-lg text-slate-800">Menu</span>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 rounded-full bg-gray-50">
                 <X size={20} />
               </button>
             </div>
-            <div className="px-4">
-              <div className="px-3 text-[11px] font-black tracking-widest text-[#9CA3AF] uppercase mb-3">
-                Learn Online
-              </div>
-              <div className="space-y-1 text-[#4B5563] font-medium text-sm">
-                <SidebarItem icon={GraduationCap} label="Study" path="/" active={location.pathname === '/'} />
-                <SidebarItem icon={Layers} label="Batches" path="/batches" active={location.pathname === '/batches'} />
-                <div className="flex items-center gap-3 px-3 py-3 text-gray-400 cursor-not-allowed">
-                  <Zap size={20} />
-                  <span className="text-sm font-medium">Dark Mode <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded ml-1">Coming Soon</span></span>
+            
+            <div className="px-3 space-y-7">
+              {/* LEARN ONLINE */}
+              <section>
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
+                  Learn Online
                 </div>
-              </div>
+                <div className="space-y-0.5">
+                  <SidebarItem icon={GraduationCap} label="Study" path="/" active={location.pathname === '/'} />
+                  <SidebarItem icon={Pi} label="PI" path="/pi" active={location.pathname === '/pi'} badge="NEW" />
+                  <SidebarItem icon={Library} label="Library" path="/library" active={location.pathname === '/library'} />
+                </div>
+              </section>
+
+              {/* STUDY PACKS */}
+              <section>
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
+                  Study Packs
+                </div>
+                <div className="space-y-0.5">
+                  <SidebarItem icon={Layers} label="Batches" path="/batches" active={location.pathname.startsWith('/batches')} />
+                </div>
+              </section>
+
+              {/* OFFLINE */}
+              <section>
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
+                  Offline
+                </div>
+                <div className="space-y-0.5">
+                  <SidebarItem icon={MapPin} label="PW Centres" path="/centres" active={location.pathname === '/centres'} />
+                </div>
+              </section>
+
+              {/* EXPLORE PW */}
+              <section>
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
+                  Explore PW
+                </div>
+                <div className="space-y-0.5">
+                  <SidebarItem icon={Store} label="PW Store" path="/store" active={location.pathname === '/store'} />
+                  <SidebarItem icon={Users} label="Become Our Partner" path="/partner" active={location.pathname === '/partner'} />
+                </div>
+              </section>
             </div>
           </aside>
         )}
@@ -194,18 +231,18 @@ function SidebarItem({
   return (
     <button
       onClick={() => navigate(path)}
-      className={`w-full flex items-center justify-between px-3 py-3 rounded-xl transition-all ${
+      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
         active 
-          ? 'bg-blue-50/80 text-blue-600 font-bold' 
-          : 'hover:bg-gray-50 text-[#4B5563] font-medium hover:text-[#1F2937]'
+          ? 'bg-[#E0E7FF] text-[#5A4BDA] font-extrabold shadow-sm' 
+          : 'hover:bg-slate-50 text-slate-500 font-medium hover:text-slate-800'
       }`}
     >
       <div className="flex items-center gap-3">
-        <Icon size={20} className={active ? 'text-blue-600' : 'text-gray-400'} />
-        <span>{label}</span>
+        <Icon size={18} className={active ? 'text-[#5A4BDA]' : 'text-slate-400'} />
+        <span className="text-[13px]">{label}</span>
       </div>
       {badge && (
-        <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
+        <span className="bg-[#FF4D4D] text-white text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">
           {badge}
         </span>
       )}
