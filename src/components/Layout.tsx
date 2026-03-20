@@ -75,9 +75,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex-1"></div>
 
         <div className="flex items-center gap-5">
-          <div className="hidden sm:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 italic font-black text-[#5A4BDA] text-[10px]">
-             Get App <img src="https://static.pw.live/5eb393ee95fab7468a79d189/ADMIN/470c1696-6e54-4a37-979a-1cce8e3f4e9a.png" className="h-4" />
-          </div>
           
           <div className="flex items-center gap-3 pl-5 border-l border-gray-100">
             <span className="text-sm font-bold hidden sm:block text-slate-700">Hi, {userName || 'Naman'}</span>

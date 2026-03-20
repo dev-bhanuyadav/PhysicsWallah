@@ -142,24 +142,16 @@ export default function TopicContents() {
                 
                 {/* Info Area */}
                 <div className="p-5 flex-1 flex flex-col">
-
                   {/* Metadata Bar */}
-                  <div className="flex items-center justify-between text-[11px] font-black text-slate-400 mb-3 border-t border-slate-50 pt-3">
+                  <div className="flex items-center justify-between text-[11px] font-black text-slate-400 mb-4 border-b border-slate-50 pb-3">
                     <div className="flex items-center gap-1.5"><Calendar size={13} className="text-slate-300" /> {new Date(item.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
                     <div className="flex items-center gap-1.5"><Clock size={13} className="text-slate-300" /> {item.videoDetails?.duration || '00:00:00'}</div>
                   </div>
                   
-                  {/* Title */}
-                  <div className="mt-auto flex items-end justify-between gap-3">
-                    <h3 className="text-[17px] font-black text-[#1F2937] leading-tight line-clamp-2 flex-1">
-                      {item.topic || item.name}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <div className="p-2 text-slate-300 hover:text-slate-500 transition-colors">
-                        <MoreVertical size={18} />
-                      </div>
-                    </div>
-                  </div>
+                  {/* Title Only */}
+                  <h3 className="text-[17px] font-black text-[#1F2937] leading-tight line-clamp-3">
+                    {item.topic || item.name}
+                  </h3>
                 </div>
               </div>
             ))}
