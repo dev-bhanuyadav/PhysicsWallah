@@ -57,6 +57,14 @@ function nodeFetch(url, options = {}) {
   });
 }
 
+function readBody(req) {
+  return new Promise((resolve) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => resolve(body));
+  });
+}
+
 async function getSetting(key) {
   try {
     const { data } = await supabase.from('settings').select('value').eq('key', key).order('updated_at', { ascending: false }).limit(1);
@@ -101,14 +109,21 @@ export default async function handler(req, res) {
     }
 
     if (path.includes('/render/batches')) {
-      const targetUrl = `https://apiserverpro.onrender.com/api/pw/batches`;
+      let targetUrl = `https://apiserverpro.onrender.com/api/pw/batches`;
+      const id = path.split('/render/batches/')[1];
+      if (id) targetUrl += `/${id}`;
+      
       const rRes = await nodeFetch(targetUrl, {
+        method: req.method,
         headers: {
           'accept': '*/*',
+          'content-type': 'application/json',
+          'x-admin-key': req.headers['x-admin-key'] || '',
           'origin': 'https://deltastudy.site',
           'referer': 'https://deltastudy.site/',
           'user-agent': commonHeaders['user-agent']
-        }
+        },
+        body: req.method === 'POST' ? await readBody(req) : undefined
       });
       return send(res, rRes.statusCode, await rRes.json());
     }
