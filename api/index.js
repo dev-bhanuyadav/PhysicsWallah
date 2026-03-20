@@ -121,8 +121,10 @@ export default async function handler(req, res) {
       'organizationId': '5eb393ee95fab7468a79d189',
       'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
       'randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+      'Randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
       'device-id': 'e62da5b8-956a-4762-94b5-2217ea0582af',
-      'client-version': '50'
+      'client-version': '50',
+      'version': '50'
     };
 
     if (path.endsWith('/media-secure')) {
