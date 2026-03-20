@@ -203,12 +203,28 @@ export default async function handler(req, res) {
         method: req.method, headers, body
       });
 
-      // If 404 and is media-secure v2, try v3 (or vice-versa)
+      // If 404 and is media-secure, try fallbacks
       if (pRes.statusCode === 404 && target.includes('media-secure')) {
+        // Fallback 1: Try alternate v2/v3
         const altTarget = target.includes('/v2/') ? target.replace('/v2/', '/v3/') : target.replace('/v3/', '/v2/');
         pRes = await nodeFetch(`https://api.penpencil.co/${altTarget}${finalSearch}`, {
           method: req.method, headers, body
         });
+
+        // Fallback 2: Try root-level media-secure (v3/media-secure?batchId=...)
+        if (pRes.statusCode === 404) {
+          pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure${finalSearch}`, {
+            method: req.method, headers, body
+          });
+        }
+
+        // Fallback 3: Try without organization headers (for global batches)
+        if (pRes.statusCode === 404) {
+          const { organizationId, ...cleanHeaders } = headers;
+          pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure${finalSearch}`, {
+            method: req.method, headers: cleanHeaders, body
+          });
+        }
       }
 
       const cType = pRes.headers.get('content-type') || '';
