@@ -47,52 +47,78 @@ export function seedIfEmpty() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
 }
 
-export async function listBatches(): Promise<Batch[]> {
-  let renderBatches: Batch[] = [];
-  let supabaseBatches: Batch[] = [];
-
-  // 1. Attempt Render Fetch
+async function fetchWithTimeout(url: string, options: any, ms = 5000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
   try {
-    const res = await fetch('/api/v1/pw-proxy/render/batches');
-    if (res.ok) {
-      const d = await res.json();
-      renderBatches = Array.isArray(d) ? d : (d.data || []);
-    }
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return res;
   } catch (e) {
-    console.error("Render fetch failed:", e);
+    clearTimeout(id);
+    throw e;
   }
+}
+
+export async function listBatches(): Promise<Batch[]> {
+  console.log("[listBatches] Starting fetch...");
   
-  // 2. Attempt Supabase Fetch
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
-      if (!error && data) {
-          // Map correctly checking for both created_at formats
-        supabaseBatches = data.map((r: any) => ({
-          id: r.id, pwId: r.pw_id, title: r.title, subtitle: r.subtitle,
-          examLabel: r.exam_label, language: r.language, startDate: r.start_date,
-          price: r.price, originalPrice: r.original_price, imageUrl: r.image_url,
-          createdAt: new Date(r.created_at || Date.now()).getTime()
-        }));
-      } else if (error) {
-          console.error("Supabase Error:", error);
+  const results = await Promise.allSettled([
+    // 1. Render API
+    (async () => {
+      try {
+        const res = await fetchWithTimeout('/api/v1/pw-proxy/render/batches', {}, 5000);
+        if (res.ok) {
+          const d = await res.json();
+          return Array.isArray(d) ? d : (d.data || []);
+        }
+      } catch (e) {
+        console.warn("[listBatches] Render fetch failed or timed out");
       }
-    } catch (e) {
-      console.error("Supabase fetch failed:", e);
-    }
-  }
+      return [];
+    })(),
 
-  // Final Merged Results
+    // 2. Supabase API
+    (async () => {
+      if (!supabase) return [];
+      try {
+        const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
+        if (!error && data) {
+          return data.map((r: any) => ({
+            id: r.id, pwId: r.pw_id, title: r.title, subtitle: r.subtitle,
+            examLabel: r.exam_label, language: r.language, startDate: r.start_date,
+            price: r.price, originalPrice: r.original_price, imageUrl: r.image_url,
+            createdAt: new Date(r.created_at || Date.now()).getTime()
+          }));
+        }
+        if (error) console.error("[listBatches] Supabase Error:", error);
+      } catch (e) {
+        console.error("[listBatches] Supabase crash:", e);
+      }
+      return [];
+    })()
+  ]);
+
+  const renderBatches = results[0].status === 'fulfilled' ? (results[0].value as Batch[]) : [];
+  const supabaseBatches = results[1].status === 'fulfilled' ? (results[1].value as Batch[]) : [];
+
+  console.log(`[listBatches] Results - Render: ${renderBatches.length}, Supabase: ${supabaseBatches.length}`);
+
   const merged = [...renderBatches];
-  const renderTitles = new Set(renderBatches.map(b => b.title.toLowerCase()));
-  
-  for (const sb of supabaseBatches) {
-    if (!renderTitles.has(sb.title.toLowerCase())) {
-        merged.push(sb);
+  const seenTitles = new Set(renderBatches.map(b => b.title.toLowerCase()));
+
+  for (const b of supabaseBatches) {
+    if (!seenTitles.has(b.title.toLowerCase())) {
+      merged.push(b);
+      seenTitles.add(b.title.toLowerCase());
     }
   }
 
-  if (merged.length === 0) return loadBatches();
+  if (merged.length === 0) {
+    console.log("[listBatches] No network batches found, returning local storage");
+    return loadBatches();
+  }
+
   return merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
