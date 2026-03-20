@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, PlayCircle, Clock, Calendar, Paperclip, MoreVertical, Lock } from 'lucide-react';
 import { listBatches } from '@/lib/batchesStorage';
+import { decryptToken } from '@/utils/cryptoUtils';
 
 export default function TopicContents() {
   const { batchId, subjectId, topicSlug } = useParams<{ batchId: string, subjectId: string, topicSlug: string }>();
@@ -45,7 +46,16 @@ export default function TopicContents() {
         const b = batches.find(x => x.id === batchId);
         const realId = b?.pwId || batchId;
 
-        const res = await fetch(`/api/v1/pw-proxy/v2/batches/${realId}/subject/${subjectId}/contents?page=1&contentType=${currentTab?.id}&tag=${topicSlug}`);
+        const encToken = sessionStorage.getItem('pw_token');
+        const headers: Record<string, string> = {};
+        if (encToken) {
+          try {
+            const token = await decryptToken(encToken);
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+          } catch (e) {}
+        }
+
+        const res = await fetch(`/api/v1/pw-proxy/v2/batches/${realId}/subject/${subjectId}/contents?page=1&contentType=${currentTab?.id}&tag=${topicSlug}`, { headers });
         const d = await res.json();
         if (d && d.success) {
           setContents(d.data || []);

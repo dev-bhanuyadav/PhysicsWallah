@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, Bell, CheckCircle2, ChevronDown, PlayCircle, Star, Calendar, ShieldAlert } from 'lucide-react';
 import { listBatches, type Batch } from '@/lib/batchesStorage';
+import { decryptToken } from '@/utils/cryptoUtils';
 
 function formatINR(n: number) {
   return `₹${Math.floor(n)}`;
@@ -29,19 +30,31 @@ export default function BatchDetails() {
         const found = all.find(x => x.id === batchId);
         const realId = found?.pwId || batchId;
         
-        fetch(`/api/v1/pw-proxy/v3/batches/${realId}/details?type=EXPLORE_LEAD`)
-        .then(r => r.json())
-        .then(d => {
-        if (d && d.data) {
-          setApiData(d.data);
-          if (!d.data.description && !d.data.shortDescription) {
-            setApiError('API returned data, but description/shortDescription is missing. Raw: ' + JSON.stringify(d).substring(0, 300));
+        const fetchDetails = async () => {
+          try {
+            const encToken = sessionStorage.getItem('pw_token');
+            const headers: Record<string, string> = {};
+            if (encToken) {
+              const token = await decryptToken(encToken);
+              if (token) headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const r = await fetch(`/api/v1/pw-proxy/v3/batches/${realId}/details?type=EXPLORE_LEAD`, { headers });
+            const d = await r.json();
+            if (d && d.data) {
+              setApiData(d.data);
+              if (!d.data.description && !d.data.shortDescription) {
+                setApiError('API returned data, but description/shortDescription is missing.');
+              }
+            } else {
+              setApiError(d.message || 'API returned error: ' + JSON.stringify(d).substring(0, 100));
+            }
+          } catch (e: any) {
+            setApiError('PW API Fetch Error: ' + e.message);
           }
-        } else {
-          setApiError('API returned unexpected format: ' + JSON.stringify(d).substring(0, 300));
-        }
-        })
-        .catch((e) => setApiError('PW API Fetch Error: ' + e.message));
+        };
+
+        fetchDetails();
       });
     }
   }, [batchId]);

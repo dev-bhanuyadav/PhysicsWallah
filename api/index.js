@@ -115,8 +115,12 @@ export default async function handler(req, res) {
       const b = url.searchParams.get('b');
       if (!b) return send(res, 400, { error: 'Batch ID (b) required' });
       const targetUrl = `https://api.penpencil.co/v3/batches/${b}/media-secure${url.search}`;
-      const tokenRaw = await getSetting('pw_token');
-      let token = decryptToken(tokenRaw);
+      // Prioritize incoming Authorization header from browser, fallback to Admin token
+      let token = req.headers['authorization'] || '';
+      if (!token || token.length < 20) {
+        const tokenRaw = await getSetting('pw_token');
+        token = decryptToken(tokenRaw) || '';
+      }
       if (token && token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
 
       const proxyRes = await nodeFetch(targetUrl, {
@@ -204,11 +208,15 @@ export default async function handler(req, res) {
       const targetPath = path.split('/pw-proxy/').pop()?.replace(/^v1\//, '') || '';
       const targetUrl = `https://api.penpencil.co/${targetPath}${url.search}`;
       
-      const tokenRaw = await getSetting('pw_token');
-      let token = decryptToken(tokenRaw);
+      // Prioritize incoming Authorization header from browser, fallback to Admin token
+      let token = req.headers['authorization'] || '';
+      if (!token || token.length < 20) {
+        const tokenRaw = await getSetting('pw_token');
+        token = decryptToken(tokenRaw) || '';
+      }
       if (token && token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
 
-      if (!token) return send(res, 401, { error: 'PW Token missing. Add it in Admin panel.' });
+      if (!token) return send(res, 401, { error: 'Authorization token missing. Please log in or configure Admin token.' });
 
       const bodyData = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
       
