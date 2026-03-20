@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const expectedKeyHash =
   process.env.ADMIN_KEY_SHA256 ||
-  '277839a853d9eb79ebd2fb5dd66e929021c8948721cd2aabc6e2be42da0a2d5e';
+  '01e669848c66516767163aa30b02530e7d21f0b19376bf5ba899216dbe594ba5';
 
 async function getSetting(key) {
   try {
