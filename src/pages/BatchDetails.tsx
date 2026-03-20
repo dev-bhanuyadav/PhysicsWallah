@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Bell, CheckCircle2, ChevronDown, PlayCircle, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, Share2, Bell, CheckCircle2, ChevronDown, PlayCircle, Star, Calendar, ShieldAlert } from 'lucide-react';
 import { listBatches, type Batch } from '@/lib/batchesStorage';
 
 function formatINR(n: number) {
@@ -41,7 +41,7 @@ export default function BatchDetails() {
     }
   }, [batchId]);
 
-  if (!batch) {
+  if (!batch && !apiData && !apiError) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-pulse flex flex-col items-center gap-4">
@@ -52,16 +52,32 @@ export default function BatchDetails() {
     );
   }
 
+  if (apiError && !batch && !apiData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+        <ShieldAlert className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Oops! Something went wrong</h2>
+        <p className="text-slate-600 mb-6 max-w-md">{apiError}</p>
+        <button 
+          onClick={() => navigate('/batches')}
+          className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+        >
+          Go Back to Batches
+        </button>
+      </div>
+    );
+  }
+
   const tabs = ['Description', 'All Classes', 'Khazana', 'Infinity Learning', 'Tests', 'Community'];
 
   // Use API real data if available, else fallback to batch DB
-  const dPrice = apiData?.fee?.total || batch.price;
-  const dOriginalPrice = apiData?.fee?.price || apiData?.fee?.amount || Math.max(batch.originalPrice, batch.price);
-  const dTitle = apiData?.name || batch.title;
-  const dLang = apiData?.language || batch.language;
+  const dPrice = apiData?.fee?.total || batch?.price || 0;
+  const dOriginalPrice = apiData?.fee?.price || apiData?.fee?.amount || Math.max(batch?.originalPrice || 0, batch?.price || 0);
+  const dTitle = apiData?.name || batch?.title || 'Batch Details';
+  const dLang = apiData?.language || batch?.language || 'Hindi/English';
   const dExamLabel = apiData?.byName 
     ? apiData.byName.replace('For ', '').replace(' Aspirants', '') 
-    : batch.examLabel;
+    : (batch?.examLabel || 'General');
 
   const offPercentFloat = dOriginalPrice > dPrice 
     ? ((1 - dPrice/dOriginalPrice) * 100).toFixed(2)
