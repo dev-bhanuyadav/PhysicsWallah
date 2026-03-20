@@ -116,15 +116,26 @@ export default async function handler(req, res) {
     };
 
     const commonHeaders = {
+      'accept': '*/*',
+      'accept-language': 'en-US,en;q=0.9',
+      'cache-control': 'no-cache',
       'client-type': 'WEB',
       'client-id': '5eb393ee95fab7468a79d189',
       'organizationId': '5eb393ee95fab7468a79d189',
-      'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+      'client-version': '4.5.2',
+      'origin': 'https://www.pw.live',
+      'referer': 'https://www.pw.live/',
+      'pragma': 'no-cache',
       'randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
-      'Randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
       'device-id': 'e62da5b8-956a-4762-94b5-2217ea0582af',
-      'client-version': '50',
-      'version': '50'
+      'x-sdk-version': '0.0.16',
+      'sec-ch-ua': '"Chromium";v="146", "Not-A.Brand";v="24", "Microsoft Edge";v="146"',
+      'sec-ch-ua-mobile': '?0',
+      'sec-ch-ua-platform': '"Windows"',
+      'sec-fetch-dest': 'empty',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-site': 'cross-site',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0'
     };
 
     if (path.endsWith('/media-secure')) {
