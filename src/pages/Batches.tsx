@@ -122,6 +122,7 @@ export default function Batches() {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [allBatches, setAllBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState('All');
 
