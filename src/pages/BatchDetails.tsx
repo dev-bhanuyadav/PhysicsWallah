@@ -40,8 +40,9 @@ export default function BatchDetails() {
         } else {
           setApiError('API returned unexpected format: ' + JSON.stringify(d).substring(0, 300));
         }
-      })
-      .catch((e) => setApiError('PW API Fetch Error: ' + e.message));
+        })
+        .catch((e) => setApiError('PW API Fetch Error: ' + e.message));
+      });
     }
   }, [batchId]);
 
