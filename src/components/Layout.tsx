@@ -57,7 +57,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             alt="Physics Wallah" 
             className="h-10 sm:h-12 w-10 sm:w-12 object-contain rounded-full border-2 border-blue-500/20 shadow-sm"
           />
-          <span className="text-[18px] sm:text-[20px] font-black tracking-tight text-[#1F2937] hidden xs:block">Physics Wallah</span>
+          <span className="text-[18px] sm:text-[20px] font-black tracking-tight text-[#1F2937] block">Physics Wallah</span>
         </div>
 
         <div className="flex-1"></div>

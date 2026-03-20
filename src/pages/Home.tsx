@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Menu, ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
+import { X, Menu, ChevronDown, ChevronRight, ArrowRight, Star } from 'lucide-react';
 import { encryptToken } from '@/utils/cryptoUtils';
+import { listBatches, type Batch } from '@/lib/batchesStorage';
 
 /* ════════════════════════════════════════════════════════
    REAL PW.LIVE CDN ASSETS
@@ -133,6 +134,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
   const [resend, setResend] = useState(0);
+  const [popularBatches, setPopularBatches] = useState<Batch[]>([]);
+
+  useEffect(() => {
+    listBatches().then(all => {
+      // Show latest 4 batches as "Popular"
+      setPopularBatches(all.slice(0, 4));
+    });
+  }, []);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 8);
@@ -296,6 +305,63 @@ export default function Home() {
               <div className="w-4 h-4 bg-white border-r border-b border-gray-100 rotate-45 -mt-2 -ml-0.5" />
             </div>
           </div> */}
+        </div>
+      </section>
+
+      {/* ══ POPULAR COURSES ══════════════════════════════════ */}
+      <section className="bg-white py-12 px-4 shadow-sm border-t border-gray-50">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-[26px] sm:text-[32px] font-black tracking-tight">Popular Courses</h2>
+            <button 
+              onClick={() => navigate('/batches')}
+              className="text-[#5A4BDA] font-bold text-sm sm:text-base hover:underline flex items-center gap-1 group"
+            >
+              See All <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          {!popularBatches.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="bg-gray-50 rounded-2xl h-[320px] animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {popularBatches.map((b) => (
+                <div 
+                  key={b.id} 
+                  onClick={() => navigate(`/batches/${b.id}`)}
+                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-[#5A4BDA]/10 hover:border-[#5A4BDA]/20 transition-all cursor-pointer flex flex-col h-full"
+                >
+                  <div className="relative pt-[56.25%] overflow-hidden bg-gray-100">
+                    <img 
+                      src={b.imageUrl || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop'} 
+                      alt={b.title} 
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[10px] font-bold text-[#5A4BDA] shadow-sm tracking-wider">
+                      {b.examLabel?.toUpperCase() || 'NEW'}
+                    </div>
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <h3 className="font-black text-[17px] text-[#1F2937] leading-tight mb-2 group-hover:text-[#5A4BDA] transition-colors">{b.title}</h3>
+                    <p className="text-gray-500 text-xs font-semibold mb-4 leading-relaxed line-clamp-2">{b.subtitle}</p>
+                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-400 line-through font-bold">₹{b.originalPrice}</span>
+                        <span className="text-lg font-black text-[#1F2937]">₹{b.price}</span>
+                      </div>
+                      <button className="bg-[#5A4BDA]/10 text-[#5A4BDA] hover:bg-[#5A4BDA] hover:text-white px-4 py-2 rounded-xl text-xs font-black transition-all">
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
