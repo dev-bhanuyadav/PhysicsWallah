@@ -68,7 +68,6 @@ export default function BatchDetails() {
     : '0';
 
   return (
-  return (
     <div className="pb-24 text-[#1F2937]">
       
       {/* ══ TOP HEADER ══ */}
