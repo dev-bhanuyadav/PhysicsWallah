@@ -79,8 +79,22 @@ async function getSetting(key) {
 // Helper: Tiny Fetch replacement for https
 function nodeFetch(url, options = {}) {
   return new Promise((resolve, reject) => {
-    const u = new URL(url);
-    const req = https.request(url, options, (res) => {
+    // Stringify and clean headers to avoid "undefined" values crashing Node.js https.request
+    const headers = {};
+    if (options.headers) {
+      for (const k of Object.keys(options.headers)) {
+        if (options.headers[k] !== undefined && options.headers[k] !== null) {
+          headers[k] = String(options.headers[k]);
+        }
+      }
+    }
+
+    const reqOptions = {
+      method: options.method || 'GET',
+      headers: headers
+    };
+
+    const req = https.request(url, reqOptions, (res) => {
       let data = '';
       res.on('data', (c) => (data += c));
       res.on('end', () => {
@@ -93,6 +107,7 @@ function nodeFetch(url, options = {}) {
       });
     });
     req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Proxy Timeout')); });
     if (options.body) req.write(options.body);
     req.end();
   });
