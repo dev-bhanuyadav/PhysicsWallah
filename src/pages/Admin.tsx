@@ -76,9 +76,8 @@ export default function Admin() {
     }
   };
 
-  if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#000A1F] text-white font-sans flex items-center justify-center px-6">
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex items-center justify-center px-6">
         {toast && (
           <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-4 w-full max-w-md">
             <div className="rounded-2xl px-5 py-4 border shadow-2xl backdrop-blur-xl bg-white/10 border-white/15">
@@ -86,19 +85,19 @@ export default function Admin() {
             </div>
           </div>
         )}
-        <div className="max-w-md w-full rounded-[24px] bg-white/5 border border-white/10 p-8">
-          <div className="text-2xl font-black tracking-tight text-center">Admin Panel</div>
-          <div className="mt-3 text-white/50 font-medium text-center">
+        <div className="max-w-md w-full rounded-[24px] bg-white border border-slate-200 p-8 shadow-xl">
+          <div className="text-2xl font-black tracking-tight text-center text-slate-900">Admin Panel</div>
+          <div className="mt-3 text-slate-500 font-medium text-center">
             Admin access ke liye key enter karo.
           </div>
 
           <div className="mt-8 space-y-3">
-            <div className="text-xs font-black tracking-widest uppercase text-white/50">Admin Key</div>
+            <div className="text-xs font-black tracking-widest uppercase text-slate-400">Admin Key</div>
             <input
               value={keyValue}
               onChange={(e) => setKeyValue(e.target.value)}
               type="password"
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none focus:border-blue-500/40"
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900"
               placeholder="Enter key"
             />
             {keyError && <div className="text-red-300 text-sm font-black">{keyError}</div>}
@@ -109,8 +108,8 @@ export default function Admin() {
             disabled={keyLoading || !keyValue.trim()}
             className={`mt-6 w-full py-4 rounded-2xl font-black tracking-widest text-sm transition-all active:scale-95 ${
               keyValue.trim()
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-white/10 text-white/50 cursor-not-allowed'
+                ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-lg'
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
             }`}
           >
             {keyLoading ? 'UNLOCKING...' : 'UNLOCK ADMIN'}
@@ -118,7 +117,7 @@ export default function Admin() {
 
           <button
             onClick={() => navigate('/batches')}
-            className="mt-4 w-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all py-4 rounded-2xl font-black tracking-widest text-sm"
+            className="mt-4 w-full bg-white border border-slate-200 hover:bg-slate-50 transition-all py-4 rounded-2xl font-black tracking-widest text-sm text-slate-600"
           >
             BACK
           </button>
@@ -269,7 +268,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000A1F] text-white font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-4 w-full max-w-md">
           <div className="rounded-2xl px-5 py-4 border shadow-2xl backdrop-blur-xl bg-white/10 border-white/15">
@@ -282,21 +281,21 @@ export default function Admin() {
         <div className="flex items-center justify-between gap-4">
           <button
             onClick={() => navigate('/batches')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 transition-all shadow-sm"
           >
             <ArrowLeft size={18} />
             <span className="text-sm font-black tracking-widest uppercase">Back</span>
           </button>
 
-          <div className="text-sm font-black tracking-widest uppercase text-white/50">
+          <div className="text-sm font-black tracking-widest uppercase text-slate-400">
             Admin Panel
           </div>
         </div>
 
         {!adminKey && (
-          <div className="mt-8 rounded-[24px] bg-white/5 border border-white/10 p-6 sm:p-8 backdrop-blur-xl">
-            <div className="text-lg font-black tracking-tight">Admin Key Required</div>
-            <div className="mt-2 text-white/50 font-medium">
+          <div className="mt-8 rounded-[24px] bg-white border border-slate-200 p-6 sm:p-8 shadow-lg">
+            <div className="text-lg font-black tracking-tight text-slate-900">Admin Key Required</div>
+            <div className="mt-2 text-slate-500 font-medium">
               Changes save karne ke liye admin key enter karo.
             </div>
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -304,7 +303,7 @@ export default function Admin() {
                 value={keyValue}
                 onChange={(e) => setKeyValue(e.target.value)}
                 type="password"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none focus:border-blue-500/40"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900"
                 placeholder="Enter key"
               />
               <button
@@ -312,34 +311,34 @@ export default function Admin() {
                 disabled={keyLoading || !keyValue.trim()}
                 className={`shrink-0 w-full sm:w-auto px-6 py-4 rounded-2xl font-black tracking-widest text-sm transition-all active:scale-95 ${
                   keyValue.trim()
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-white/10 text-white/50 cursor-not-allowed'
+                    ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
                 {keyLoading ? 'UNLOCKING...' : 'UNLOCK'}
               </button>
             </div>
-            {keyError && <div className="mt-3 text-red-300 text-sm font-black">{keyError}</div>}
+            {keyError && <div className="mt-3 text-red-500 text-sm font-black">{keyError}</div>}
           </div>
         )}
 
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Transition to Sync Section */}
-          <div className="lg:col-span-2 rounded-[24px] bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 p-6 sm:p-8 backdrop-blur-xl">
+          <div className="lg:col-span-2 rounded-[24px] bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-6 sm:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               <div className="flex-1">
-                <div className="text-xl font-black tracking-tight flex items-center gap-2">
+                <div className="text-xl font-black tracking-tight flex items-center gap-2 text-slate-900">
                   Advance Sync
-                  <span className="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full uppercase tracking-widest">PW API</span>
+                  <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-widest">PW API</span>
                 </div>
-                <div className="mt-2 text-white/50 text-sm font-medium">
+                <div className="mt-2 text-slate-500 text-sm font-medium">
                   PW Bearer Token add karo aur seedha official batches sync karo.
                 </div>
                 <div className="mt-4 max-w-xl">
                   <input
                     value={pwToken}
                     onChange={(e) => setPwToken(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/40 text-xs font-mono"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-xs font-mono text-slate-700"
                     placeholder="Paste Bearer Token here..."
                   />
                 </div>
@@ -348,7 +347,7 @@ export default function Admin() {
                 <button
                   onClick={saveToken}
                   disabled={tokenLoading}
-                  className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-sm font-black tracking-widest transition-all"
+                  className="px-6 py-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-black tracking-widest transition-all shadow-sm"
                 >
                   {tokenLoading ? 'SAVING...' : 'SAVE TOKEN'}
                 </button>
@@ -363,15 +362,15 @@ export default function Admin() {
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white/5 border border-white/10 p-6 sm:p-8 backdrop-blur-xl">
-            <div className="text-xl font-black tracking-tight">Add Batch Manually</div>
+          <div className="rounded-[24px] bg-white border border-slate-200 p-6 sm:p-8 shadow-lg">
+            <div className="text-xl font-black tracking-tight text-slate-900">Add Batch Manually</div>
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="space-y-2">
-                <div className="text-xs font-black tracking-widest uppercase text-white/50">Title</div>
+                <div className="text-xs font-black tracking-widest uppercase text-slate-400">Title</div>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/40"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900"
                   placeholder="Yakeen NEET 2027"
                 />
               </label>
@@ -454,7 +453,7 @@ export default function Admin() {
                 <input
                   value={pw_id}
                   onChange={(e) => setPwId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/40"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900"
                   placeholder="e.g. 657a..."
                 />
               </label>
@@ -473,10 +472,10 @@ export default function Admin() {
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white/5 border border-white/10 p-6 sm:p-8 backdrop-blur-xl">
+          <div className="rounded-[24px] bg-white border border-slate-200 p-6 sm:p-8 shadow-lg">
             <div className="flex items-center justify-between gap-4">
-              <div className="text-xl font-black tracking-tight">All Batches</div>
-              <div className="text-xs font-black tracking-widest uppercase text-white/40">
+              <div className="text-xl font-black tracking-tight text-slate-900">All Batches</div>
+              <div className="text-xs font-black tracking-widest uppercase text-slate-400">
                 {batches.length}
               </div>
             </div>
@@ -487,23 +486,23 @@ export default function Admin() {
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div
                       key={i}
-                      className="rounded-2xl bg-white/5 border border-white/10 p-4 h-[72px]"
+                      className="rounded-2xl bg-slate-50 border border-slate-100 p-4 h-[72px] animate-pulse"
                     />
                   ))}
                 </>
               )}
               {batches.map((b: Batch) => (
                 <div
-                  key={b.id}
-                  className="rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between gap-4"
+                   key={b.id}
+                   className="rounded-2xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-between gap-4 hover:border-blue-200 transition-all"
                 >
                   <div className="min-w-0">
-                    <div className="font-black truncate">{b.title}</div>
-                    <div className="text-white/50 text-sm font-bold truncate">{b.subtitle}</div>
+                    <div className="font-black text-slate-900 truncate">{b.title}</div>
+                    <div className="text-slate-500 text-sm font-bold truncate">{b.subtitle}</div>
                   </div>
                   <button
                     onClick={() => handleDelete(b.id)}
-                    className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                    className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 text-slate-400 transition-all shadow-sm"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -511,7 +510,7 @@ export default function Admin() {
               ))}
 
               {!batchesLoading && !batches.length && (
-                <div className="text-white/40 text-sm font-bold">No batches yet.</div>
+                <div className="text-slate-400 text-sm font-bold text-center py-8">No batches yet.</div>
               )}
             </div>
           </div>
