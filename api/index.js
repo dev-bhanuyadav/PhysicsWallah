@@ -1,4 +1,5 @@
-import { createHash, randomUUID, pbkdf2Sync, createDecipheriv } from 'node:crypto';
+import { createHash, pbkdf2Sync, createDecipheriv } from 'crypto';
+import https from 'https';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase config
@@ -40,6 +41,7 @@ function sha256(s) {
 
 // Helper: Response sender
 function send(res, status, body, headers = {}) {
+  const json = JSON.stringify(body);
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'access-control-allow-origin': '*',
@@ -47,7 +49,7 @@ function send(res, status, body, headers = {}) {
     'access-control-allow-headers': 'content-type,x-admin-key',
     ...headers,
   });
-  res.end(JSON.stringify(body));
+  res.end(json);
 }
 
 // Helper: Read request body
@@ -74,16 +76,39 @@ async function getSetting(key) {
   } catch { return null; }
 }
 
+// Helper: Tiny Fetch replacement for https
+function nodeFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const req = https.request(url, options, (res) => {
+      let data = '';
+      res.on('data', (c) => (data += c));
+      res.on('end', () => {
+        resolve({
+          status: res.status,
+          headers: { get: (k) => res.headers[k.toLowerCase()] },
+          json: async () => JSON.parse(data),
+          text: async () => data,
+        });
+      });
+    });
+    req.on('error', reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+}
+
 export default async function handler(req, res) {
   try {
     if (!req.url) return send(res, 404, { error: 'Not found' });
     if (req.method === 'OPTIONS') return send(res, 204, {});
 
-    const url = new URL(req.url, `http://${req.headers.host}`);
+    const host = req.headers.host || 'localhost';
+    const url = new URL(req.url, `http://${host}`);
     const path = url.pathname;
 
     // --- Health ---
-    if (path.endsWith('/health')) return send(res, 200, { status: 'ok' });
+    if (path.endsWith('/health')) return send(res, 200, { status: 'ok', node: process.version });
 
     // --- Batches API ---
     if (req.method === 'GET' && path.endsWith('/batches')) {
@@ -132,7 +157,7 @@ export default async function handler(req, res) {
       return send(res, 200, { ok: true });
     }
 
-    // --- Token Management ---
+    // --- Admin Settings (Token) ---
     if (path.endsWith('/admin/settings/token')) {
       if (req.method === 'GET') {
         const token = await getSetting('pw_token');
@@ -159,7 +184,9 @@ export default async function handler(req, res) {
       if (!token) return send(res, 401, { error: 'PW Token missing. Add it in Admin panel.' });
 
       const bodyData = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
-      const proxyRes = await fetch(targetUrl, {
+      
+      // Use internal nodeFetch helper (more robust than global fetch on some Node versions)
+      const proxyRes = await nodeFetch(targetUrl, {
         method: req.method,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -174,16 +201,16 @@ export default async function handler(req, res) {
       const contentType = proxyRes.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
         const data = await proxyRes.json();
-        return send(res, proxyRes.status, data);
+        return send(res, proxyRes.status || 200, data);
       } else {
         const text = await proxyRes.text();
-        return send(res, proxyRes.status, { text, contentType });
+        return send(res, proxyRes.status || 200, { text, contentType });
       }
     }
 
     return send(res, 404, { error: 'Not found' });
   } catch (e) {
     console.error('Server error:', e);
-    return send(res, 500, { error: 'Internal Server Error', message: e.message });
+    return send(res, 500, { error: 'Internal Server Error', message: e.message, stack: e.stack });
   }
 }
