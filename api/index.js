@@ -152,6 +152,7 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json'
         }
       });
+      const contentType = proxyRes.headers.get('content-type') || '';
       const data = await proxyRes.json();
       return send(res, proxyRes.statusCode || 200, data);
     }
@@ -254,7 +255,8 @@ export default async function handler(req, res) {
           body: bodyData
         });
       
-      if (contentType && contentType.includes('application/json')) {
+        const contentType = proxyRes.headers.get('content-type') || '';
+        if (contentType && contentType.includes('application/json')) {
         const data = await proxyRes.json();
         return send(res, proxyRes.statusCode || 200, data);
       } else {
