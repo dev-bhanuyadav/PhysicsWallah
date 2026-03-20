@@ -84,6 +84,35 @@ export default async function handler(req, res) {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0'
     };
 
+    if (path.includes('/render/video')) {
+      const b = url.searchParams.get('batchId');
+      const s = url.searchParams.get('subjectId');
+      const c = url.searchParams.get('childId');
+      const targetUrl = `https://apiserverpro.onrender.com/api/pw/video?batchId=${b}&subjectId=${s}&childId=${c}`;
+      const rRes = await nodeFetch(targetUrl, {
+        headers: {
+          'accept': '*/*',
+          'origin': 'https://deltastudy.site',
+          'referer': 'https://deltastudy.site/',
+          'user-agent': commonHeaders['user-agent']
+        }
+      });
+      return send(res, rRes.statusCode, await rRes.json());
+    }
+
+    if (path.includes('/render/batches')) {
+      const targetUrl = `https://apiserverpro.onrender.com/api/pw/batches`;
+      const rRes = await nodeFetch(targetUrl, {
+        headers: {
+          'accept': '*/*',
+          'origin': 'https://deltastudy.site',
+          'referer': 'https://deltastudy.site/',
+          'user-agent': commonHeaders['user-agent']
+        }
+      });
+      return send(res, rRes.statusCode, await rRes.json());
+    }
+
     if (path.includes('/media-secure')) {
       const b = url.searchParams.get('b') || url.searchParams.get('batchId');
       const s = url.searchParams.get('s') || url.searchParams.get('subjectId');
