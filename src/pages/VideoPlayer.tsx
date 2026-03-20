@@ -114,7 +114,7 @@ export default function VideoPlayer() {
         const b = batches.find(x => x.id === batchId);
         const realId = b?.pwId || batchId;
 
-        const res = await fetch(`/api/v1/media-secure?b=${realId}&s=${subjectId}&c=${childId}`, { headers });
+        const res = await fetch(`/api/v1/pw-proxy/v3/batches/${realId}/media-secure?b=${realId}&s=${subjectId}&c=${childId}`, { headers });
         
         let meta;
         try { meta = await res.json(); } catch(e) {}

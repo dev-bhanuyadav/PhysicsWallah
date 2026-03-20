@@ -138,17 +138,6 @@ export default async function handler(req, res) {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0'
     };
 
-    if (path.endsWith('/media-secure')) {
-      const b = url.searchParams.get('b');
-      if (!b) return send(res, 400, { error: 'Batch ID required' });
-      const pinId = await getProxyToken();
-      const pRes = await nodeFetch(`https://api.penpencil.co/v3/batches/${b}/media-secure${url.search}`, {
-        method: 'GET',
-        headers: { ...commonHeaders, 'Authorization': `Bearer ${pinId}` }
-      });
-      const data = await pRes.json();
-      return send(res, pRes.statusCode || 200, data);
-    }
 
     if (req.method === 'GET' && path.endsWith('/batches')) {
       const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
