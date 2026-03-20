@@ -221,9 +221,7 @@ export default async function handler(req, res) {
       const bodyData = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
       
       // Use internal nodeFetch helper (more robust than global fetch on some Node versions)
-        const proxyRes = await nodeFetch(targetUrl, {
-        method: req.method,
-        headers: {
+        const proxyHeaders = {
           'Authorization': `Bearer ${token}`,
           'client-type': 'WEB',
           'client-id': '5eb393ee95fab7468a79d189',
@@ -231,11 +229,15 @@ export default async function handler(req, res) {
           'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
           'randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
           'device-id': 'e62da5b8-956a-4762-94b5-2217ea0582af',
-          'client-version': '50',
-          'Content-Type': bodyData ? 'application/json' : undefined
-        },
-        body: bodyData
-      });
+          'client-version': '50'
+        };
+        if (bodyData) proxyHeaders['Content-Type'] = 'application/json';
+
+        const proxyRes = await nodeFetch(targetUrl, {
+          method: req.method,
+          headers: proxyHeaders,
+          body: bodyData
+        });
       
       if (contentType && contentType.includes('application/json')) {
         const data = await proxyRes.json();
