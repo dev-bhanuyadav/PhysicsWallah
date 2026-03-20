@@ -54,7 +54,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2 sm:gap-3 mr-4 sm:mr-10 cursor-pointer" onClick={() => navigate('/')}>
           <img 
             src="https://th.bing.com/th/id/OIP.8vIGm3BuOD31_XaWr2FhMgHaHa?w=175&h=180&c=7&r=0&o=7&pid=1.7&rm=3" 
-            alt="AlManer" 
+            alt="Physics Wallah" 
             className="h-10 sm:h-12 w-10 sm:w-12 object-contain rounded-full border-2 border-blue-500/20 shadow-sm"
           />
           <span className="text-[18px] sm:text-[20px] font-black tracking-tight text-[#1F2937] hidden xs:block">Physics Wallah</span>
@@ -123,8 +123,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {/* Col 1 — Brand */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <img src="https://th.bing.com/th/id/OIP.8vIGm3BuOD31_XaWr2FhMgHaHa?w=175&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="AlManer" className="h-10 w-10 rounded-full" />
-                    <span className="text-xl font-black">AlManer</span>
+                    <img src="https://th.bing.com/th/id/OIP.8vIGm3BuOD31_XaWr2FhMgHaHa?w=175&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Physics Wallah" className="h-10 w-10 rounded-full" />
+                    <span className="text-xl font-black">Physics Wallah</span>
                   </div>
                   <p className="text-xs text-[#6B7280] font-medium leading-relaxed mb-4">
                     Providing quality education at the most affordable prices. AlManer (Physics Wala branding) is committed to your success.
