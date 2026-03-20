@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomUUID, pbkdf2Sync, createDecipheriv } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +12,28 @@ const DATA_FILE = join(DATA_DIR, 'batches.json');
 const supabaseUrl = 'https://wokvqlueeuxwqkzjwdgq.supabase.co';
 const supabaseAnonKey = 'sb_publishable_Jxd-JJ87Vz6Fk5bFc1mQ6w_lK29j27y';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+const CRYPTO_PASS = "AlManer-Secure-Key-2025-PW-Clone";
+const CRYPTO_SALT = "almaner-salt";
+
+function decryptToken(encB64) {
+  if (!encB64 || encB64.length < 30) return encB64;
+  try {
+    const combined = Buffer.from(encB64, 'base64');
+    const iv = combined.subarray(0, 12);
+    const tag = combined.subarray(combined.length - 16);
+    const cts = combined.subarray(12, combined.length - 16);
+    const key = pbkdf2Sync(CRYPTO_PASS, CRYPTO_SALT, 100000, 32, 'sha256');
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    let dec = decipher.update(cts, undefined, 'utf8');
+    dec += decipher.final('utf8');
+    return dec;
+  } catch (e) {
+    console.error('Decryption failed:', e.message);
+    return encB64;
+  }
+}
 
 const expectedKeyHash =
   process.env.ADMIN_KEY_SHA256 ||
@@ -37,6 +59,24 @@ async function setSetting(key, value) {
     return !error;
   } catch {
     return false;
+  }
+}
+
+function decryptToken(encB64) {
+  if (!encB64 || encB64.length < 30) return encB64;
+  try {
+    const combined = Buffer.from(encB64, 'base64');
+    const iv = combined.subarray(0, 12);
+    const tag = combined.subarray(combined.length - 16);
+    const cts = combined.subarray(12, combined.length - 16);
+    const key = pbkdf2Sync(CRYPTO_PASS, CRYPTO_SALT, 100000, 32, 'sha256');
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    let dec = decipher.update(cts, undefined, 'utf8');
+    dec += decipher.final('utf8');
+    return dec;
+  } catch (e) {
+    return encB64;
   }
 }
 
@@ -225,7 +265,11 @@ export default async function handler(req, res) {
       const targetPath = path.split('/pw-proxy/').pop()?.replace(/^v1\//, '') || '';
       const targetUrl = `https://api.penpencil.co/${targetPath}${url.search}`;
       
-      const token = (await getSetting('pw_token')) || process.env.PW_TOKEN || '';
+      const tokenRaw = (await getSetting('pw_token')) || process.env.PW_TOKEN || '';
+      let token = decryptToken(tokenRaw);
+      if (token.toLowerCase().startsWith('bearer ')) {
+        token = token.substring(7).trim();
+      }
 
       if (!token) return send(res, 401, { error: 'PW Bearer Token not configured in Admin panel or Env' });
 
