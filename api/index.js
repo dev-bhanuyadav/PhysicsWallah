@@ -86,7 +86,7 @@ async function readBody(req) {
 }
 
 function requireAdmin(req) {
-  const key = req.headers['x-admin-key'] || '';
+  const key = (req.headers['x-admin-key'] || '').trim();
   return sha256(key) === expectedKeyHash;
 }
 
