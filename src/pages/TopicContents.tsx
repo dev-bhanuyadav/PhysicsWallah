@@ -72,19 +72,19 @@ export default function TopicContents() {
     <div className="min-h-screen bg-[#F8F9FB] pb-24 text-[#1F2937]">
       
       {/* ══ TOP BAR ══ */}
-      <div className="bg-white border-b border-gray-100 flex items-center justify-between h-14 px-6 md:px-10 sticky top-0 z-30">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2.5 text-slate-800 font-bold hover:text-blue-600 transition-colors">
+      <div className="bg-white border-b border-gray-100 flex items-center justify-between h-14 px-4 sm:px-10 sticky top-0 z-30">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-800 font-bold hover:text-blue-600 transition-colors">
           <ArrowLeft size={18} strokeWidth={3} /> 
           <span className="text-[14px]">Back</span>
         </button>
         
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-100 font-extrabold text-[#6B7280] shadow-sm">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-100 font-extrabold text-[#6B7280] shadow-sm scale-90">
           <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-tr from-slate-200 to-white border border-slate-300 flex items-center justify-center text-[7px] text-slate-500">XP</div>
           <span className="text-xs">0</span>
         </div>
       </div>
 
-      <div className="max-w-[1240px] mx-auto px-6 md:px-10 pt-10">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-10 pt-10">
         <h1 className="text-[32px] font-black text-[#1F2937] mb-8 leading-tight tracking-tight">{topicName}</h1>
         
         {/* PILL TABS */}
@@ -163,7 +163,7 @@ export default function TopicContents() {
                     <h3 className="text-[15px] font-black text-[#1F2937] leading-tight line-clamp-2 flex-1">
                       {item.topic || item.name}
                     </h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <div className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
                         <Paperclip size={18} strokeWidth={2.5} />
                       </div>

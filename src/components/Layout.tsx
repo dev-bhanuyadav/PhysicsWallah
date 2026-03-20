@@ -60,18 +60,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <img 
             src="https://th.bing.com/th/id/OIP.8vIGm3BuOD31_XaWr2FhMgHaHa?w=175&h=180&c=7&r=0&o=7&pid=1.7&rm=3" 
             alt="Physics Wallah" 
-            className="h-10 sm:h-12 w-10 sm:w-12 object-contain rounded-full border-2 border-blue-500/20 shadow-sm"
+            className="h-8 sm:h-10 w-8 sm:w-10 object-contain"
           />
-          <span className="text-[18px] sm:text-[20px] font-black tracking-tight text-[#1F2937] block">Physics Wallah</span>
+          <span className="text-[16px] sm:text-[18px] font-black tracking-tight text-[#1F2937] block">Physics Wallah</span>
+        </div>
+
+        {/* Board Selector - MOCK */}
+        <div className="hidden md:flex items-center gap-2 bg-[#F0F4FF] px-4 py-2 rounded-xl cursor-pointer hover:bg-[#E0E7FF] transition-colors">
+          <div className="w-6 h-6 rounded-lg bg-[#5A4BDA] flex items-center justify-center text-[10px] text-white font-bold">12</div>
+          <span className="text-xs font-bold text-[#5A4BDA]">12th Commerce - CBSE Board</span>
+          <ChevronRight size={14} className="text-[#5A4BDA] rotate-90" />
         </div>
 
         <div className="flex-1"></div>
 
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-3 pl-5 border-l border-gray-200">
-            <span className="text-sm font-bold hidden sm:block">Hi, {userName || 'Student'}</span>
-            <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
-              <User size={18} />
+          <div className="hidden sm:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 italic font-black text-[#5A4BDA] text-[10px]">
+             Get App <img src="https://static.pw.live/5eb393ee95fab7468a79d189/ADMIN/470c1696-6e54-4a37-979a-1cce8e3f4e9a.png" className="h-4" />
+          </div>
+          
+          <div className="flex items-center gap-3 pl-5 border-l border-gray-100">
+            <span className="text-sm font-bold hidden sm:block text-slate-700">Hi, {userName || 'Naman'}</span>
+            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#5A4BDA]/10 shadow-sm">
+              <img src="https://static.pw.live/5eb393ee95fab7468a79d189/ADMIN/97e9f801-6c2e-4b41-9494-b778c8577002.png" className="w-full h-full object-cover" />
             </div>
           </div>
         </div>
@@ -104,8 +115,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="px-3 space-y-7">
               {/* LEARN ONLINE */}
               <section>
-                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
-                  Learn Online
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-3">
+                  LEARN ONLINE
                 </div>
                 <div className="space-y-0.5">
                   <SidebarItem icon={GraduationCap} label="Study" path="/" active={location.pathname === '/'} />
@@ -116,8 +127,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {/* STUDY PACKS */}
               <section>
-                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
-                  Study Packs
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-3">
+                  STUDY PACKS
                 </div>
                 <div className="space-y-0.5">
                   <SidebarItem icon={Layers} label="Batches" path="/batches" active={location.pathname.startsWith('/batches')} />
@@ -126,8 +137,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {/* OFFLINE */}
               <section>
-                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
-                  Offline
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-3">
+                  OFFLINE
                 </div>
                 <div className="space-y-0.5">
                   <SidebarItem icon={MapPin} label="PW Centres" path="/centres" active={location.pathname === '/centres'} />
@@ -136,8 +147,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {/* EXPLORE PW */}
               <section>
-                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2">
-                  Explore PW
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-3">
+                  EXPLORE PW
                 </div>
                 <div className="space-y-0.5">
                   <SidebarItem icon={Store} label="PW Store" path="/store" active={location.pathname === '/store'} />
