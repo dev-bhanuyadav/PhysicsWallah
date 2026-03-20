@@ -110,6 +110,30 @@ export default async function handler(req, res) {
     // --- Health ---
     if (path.endsWith('/health')) return send(res, 200, { status: 'ok', node: process.version });
 
+    // --- Media Proxy ---
+    if (path.endsWith('/media-secure')) {
+      const b = url.searchParams.get('b');
+      if (!b) return send(res, 400, { error: 'Batch ID (b) required' });
+      const targetUrl = `https://api.penpencil.co/v3/batches/${b}/media-secure${url.search}`;
+      const tokenRaw = await getSetting('pw_token');
+      let token = decryptToken(tokenRaw);
+      if (token && token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
+
+      const proxyRes = await nodeFetch(targetUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'client-type': 'WEB',
+          'client-id': '5eb393ee95fab7468a79d189',
+          'organizationId': '5eb393ee95fab7468a79d189',
+          'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await proxyRes.json();
+      return send(res, proxyRes.status || 200, data);
+    }
+
     // --- Batches API ---
     if (req.method === 'GET' && path.endsWith('/batches')) {
       const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
@@ -186,13 +210,14 @@ export default async function handler(req, res) {
       const bodyData = (req.method !== 'GET' && req.method !== 'HEAD') ? await readBody(req) : undefined;
       
       // Use internal nodeFetch helper (more robust than global fetch on some Node versions)
-      const proxyRes = await nodeFetch(targetUrl, {
+        const proxyRes = await nodeFetch(targetUrl, {
         method: req.method,
         headers: {
           'Authorization': `Bearer ${token}`,
           'client-type': 'WEB',
           'client-id': '5eb393ee95fab7468a79d189',
           'organizationId': '5eb393ee95fab7468a79d189',
+          'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
           'Content-Type': 'application/json'
         },
         body: bodyData
