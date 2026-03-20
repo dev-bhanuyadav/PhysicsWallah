@@ -85,9 +85,9 @@ function nodeFetch(url, options = {}) {
       res.on('data', (c) => (data += c));
       res.on('end', () => {
         resolve({
-          status: res.status,
+          statusCode: res.statusCode,
           headers: { get: (k) => res.headers[k.toLowerCase()] },
-          json: async () => JSON.parse(data),
+          json: async () => { try { return JSON.parse(data); } catch { return { error: 'Invalid JSON', text: data }; } },
           text: async () => data,
         });
       });
@@ -127,11 +127,14 @@ export default async function handler(req, res) {
           'client-id': '5eb393ee95fab7468a79d189',
           'organizationId': '5eb393ee95fab7468a79d189',
           'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+          'randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+          'device-id': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+          'client-version': '50',
           'Content-Type': 'application/json'
         }
       });
       const data = await proxyRes.json();
-      return send(res, proxyRes.status || 200, data);
+      return send(res, proxyRes.statusCode || 200, data);
     }
 
     // --- Batches API ---
@@ -218,18 +221,20 @@ export default async function handler(req, res) {
           'client-id': '5eb393ee95fab7468a79d189',
           'organizationId': '5eb393ee95fab7468a79d189',
           'randomId': 'e62da5b8-956a-4762-94b5-2217ea0582af',
-          'Content-Type': 'application/json'
+          'randomid': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+          'device-id': 'e62da5b8-956a-4762-94b5-2217ea0582af',
+          'client-version': '50',
+          'Content-Type': bodyData ? 'application/json' : undefined
         },
         body: bodyData
       });
       
-      const contentType = proxyRes.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
+      if (contentType && contentType.includes('application/json')) {
         const data = await proxyRes.json();
-        return send(res, proxyRes.status || 200, data);
+        return send(res, proxyRes.statusCode || 200, data);
       } else {
         const text = await proxyRes.text();
-        return send(res, proxyRes.status || 200, { text, contentType });
+        return send(res, proxyRes.statusCode || 200, { text, contentType });
       }
     }
 
