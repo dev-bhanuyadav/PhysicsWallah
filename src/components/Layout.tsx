@@ -82,39 +82,42 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        {/* Sidebar */}
-        <aside className={`
-          fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-gray-200 overflow-y-auto pt-6 pb-10 transition-all duration-300 
-          lg:static lg:translate-x-0 
-          ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
-        `}>
-          <div className="flex items-center justify-between px-6 mb-6 lg:hidden">
-            <span className="font-bold text-lg">Menu</span>
-            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 rounded-full bg-gray-50">
-              <X size={20} />
-            </button>
-          </div>
-          <div className="px-4">
-            <div className="px-3 text-[11px] font-black tracking-widest text-[#9CA3AF] uppercase mb-3">
-              Learn Online
+        {/* Sidebar - HIDDEN ON HOME PAGE */}
+        {location.pathname !== '/' && (
+          <aside className={`
+            fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-gray-200 overflow-y-auto pt-6 pb-10 transition-all duration-300 
+            lg:static lg:translate-x-0 
+            ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
+          `}>
+            <div className="flex items-center justify-between px-6 mb-6 lg:hidden">
+              <span className="font-bold text-lg">Menu</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 rounded-full bg-gray-50">
+                <X size={20} />
+              </button>
             </div>
-            <div className="space-y-1 text-[#4B5563] font-medium text-sm">
-              <SidebarItem icon={GraduationCap} label="Study" path="/" active={location.pathname === '/'} />
-              <SidebarItem icon={Layers} label="Batches" path="/batches" active={location.pathname === '/batches'} />
-              <div className="flex items-center gap-3 px-3 py-3 text-gray-400 cursor-not-allowed">
-                <Zap size={20} />
-                <span className="text-sm font-medium">Dark Mode <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded ml-1">Coming Soon</span></span>
+            <div className="px-4">
+              <div className="px-3 text-[11px] font-black tracking-widest text-[#9CA3AF] uppercase mb-3">
+                Learn Online
+              </div>
+              <div className="space-y-1 text-[#4B5563] font-medium text-sm">
+                <SidebarItem icon={GraduationCap} label="Study" path="/" active={location.pathname === '/'} />
+                <SidebarItem icon={Layers} label="Batches" path="/batches" active={location.pathname === '/batches'} />
+                <div className="flex items-center gap-3 px-3 py-3 text-gray-400 cursor-not-allowed">
+                  <Zap size={20} />
+                  <span className="text-sm font-medium">Dark Mode <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded ml-1">Coming Soon</span></span>
+                </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Page Content */}
         <main className="flex-1 bg-white min-w-0">
           {children}
           
-          {/* Global Footer */}
-          <footer className="bg-white border-t border-gray-100 pt-10 pb-6 px-4">
+          {/* Global Footer - ONLY ON HOME PAGE */}
+          {location.pathname === '/' && (
+            <footer className="bg-white border-t border-gray-100 pt-10 pb-6 px-4">
             <div className="max-w-[1240px] mx-auto">
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 pb-8 border-b border-gray-100">
                 {/* Col 1 — Brand */}
@@ -167,6 +170,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-center text-xs text-[#9CA3AF] mt-6">Copyright © 2025 AlManer (Physicswallah Clone). All rights reserved.</p>
             </div>
           </footer>
+          )}
         </main>
       </div>
     </div>

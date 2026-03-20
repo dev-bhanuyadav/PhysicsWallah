@@ -60,10 +60,13 @@ function BatchCard({ batch }: { batch: Batch }) {
     >
       <div className="relative w-full pt-[58%] sm:pt-[52%] bg-gray-100 overflow-hidden">
         <img
-          src={batch.imageUrl}
+          src={batch.imageUrl || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop'}
           alt={batch.title}
           className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-40" />
       </div>
