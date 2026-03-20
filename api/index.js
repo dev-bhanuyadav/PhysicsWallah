@@ -139,6 +139,23 @@ export default async function handler(req, res) {
     };
 
 
+    if (path.includes('/media-secure')) {
+      const b = url.searchParams.get('b') || url.searchParams.get('batchId') || path.split('/batches/').pop()?.split('/')[0];
+      const s = url.searchParams.get('s') || url.searchParams.get('subjectId');
+      const c = url.searchParams.get('c') || url.searchParams.get('childId');
+      
+      if (!b) return send(res, 400, { error: 'Batch ID required', path });
+      
+      const pinId = await getProxyToken();
+      const headers = { ...commonHeaders, 'Authorization': `Bearer ${pinId}` };
+      
+      const targetUrl = `https://api.penpencil.co/v2/batches/${b}/media-secure?batchId=${b}&subjectId=${s || ''}&childId=${c || ''}`;
+      
+      const pRes = await nodeFetch(targetUrl, { method: 'GET', headers });
+      const data = await pRes.json();
+      return send(res, pRes.statusCode || 200, data);
+    }
+
     if (req.method === 'GET' && path.endsWith('/batches')) {
       const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
       if (error) return send(res, 500, { error: 'Supabase Error' });
