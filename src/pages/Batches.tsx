@@ -167,11 +167,7 @@ export default function Batches() {
   }, [q, allBatches, category]);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] text-[#1F2937] font-sans">
-      <div className="mx-auto max-w-[1400px] min-h-screen flex flex-col">
-
-        <main className="flex-1 min-w-0">
-          <div className="px-4 sm:px-8 py-6">
+    <div className="p-4 sm:px-8 py-6">
             <div className="flex items-center justify-between gap-4">
               <div className="text-lg font-black tracking-tight">Batches</div>
 
@@ -260,9 +256,6 @@ export default function Batches() {
             {!loading && !batches.length && (
               <div className="mt-10 text-slate-500 font-bold">No batches found.</div>
             )}
-          </div>
-        </main>
-      </div>
     </div>
   );
 }

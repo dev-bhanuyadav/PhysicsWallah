@@ -8,7 +8,7 @@ function formatINR(n: number) {
 }
 
 export default function BatchDetails() {
-  const { id } = useParams<{ id: string }>();
+  const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
   const [batch, setBatch] = useState<Batch | null>(null);
   const [activeTab, setActiveTab] = useState('Description');
@@ -18,14 +18,14 @@ export default function BatchDetails() {
   useEffect(() => {
     // 1. Load basic batch details from async storage
     listBatches().then(all => {
-      const found = all.find((b) => b.id === id);
+      const found = all.find((b) => b.id === batchId);
       if (found) setBatch(found);
       else setApiError('Batch ID not found in global database.');
     });
     
     // 2. Fetch from real PenPencil API via Secure Node Proxy
-    if (id) {
-      fetch(`/api/v1/pw-proxy/v3/batches/${id}/details?type=EXPLORE_LEAD`)
+    if (batchId) {
+      fetch(`/api/v1/pw-proxy/v3/batches/${batchId}/details?type=EXPLORE_LEAD`)
       .then(r => r.json())
       .then(d => {
         if (d && d.data) {
@@ -39,7 +39,7 @@ export default function BatchDetails() {
       })
       .catch((e) => setApiError('PW API Fetch Error: ' + e.message));
     }
-  }, [id]);
+  }, [batchId]);
 
   if (!batch) {
     return (
@@ -68,10 +68,11 @@ export default function BatchDetails() {
     : '0';
 
   return (
-    <div className="-mx-4 md:-mx-6 -mt-4 md:-mt-6 min-h-screen bg-[#F8F9FB] pb-24 text-[#1F2937]">
+  return (
+    <div className="pb-24 text-[#1F2937]">
       
       {/* ══ TOP HEADER ══ */}
-      <div className="bg-white/80 backdrop-blur-xl sticky top-[64px] z-30 pt-4 pb-2 border-b border-gray-200">
+      <div className="bg-white/80 backdrop-blur-xl sticky top-0 z-30 pt-4 pb-2 border-b border-gray-200">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-8 flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-gray-500 hover:text-[#1F2937] font-medium transition-colors">
             <ArrowLeft size={20} strokeWidth={2.5} /> <span className="text-[15px] font-semibold">Back</span>
