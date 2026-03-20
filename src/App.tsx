@@ -16,7 +16,7 @@ export default function App() {
         <Route path="/batches" element={<Layout><Batches /></Layout>} />
         <Route path="/batches/:batchId" element={<Layout><BatchDetails /></Layout>} />
         <Route path="/batches/:batchId/subjects/:subjectId" element={<Layout><SubjectTopics /></Layout>} />
-        <Route path="/batches/:batchId/subjects/:subjectId/contents/:topicSlug" element={<Layout><TopicContents /></Layout>} />
+        <Route path="/batches/:batchId/subjects/:subjectId/topics/:topicSlug" element={<Layout><TopicContents /></Layout>} />
         <Route path="/batches/:batchId/subjects/:subjectId/video/:childId" element={<VideoPlayer />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
