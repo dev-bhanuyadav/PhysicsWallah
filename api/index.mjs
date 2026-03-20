@@ -2,8 +2,9 @@ import { createHash, pbkdf2Sync, createDecipheriv } from 'crypto';
 import https from 'https';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://wokvqlueeuxwqkzjwdgq.supabase.co';
-const supabaseAnonKey = 'sb_publishable_Jxd-JJ87Vz6Fk5bFc1mQ6w_lK29j27y';
+// Unified Supabase Project (vmtvghkicidatwyzttic)
+const supabaseUrl = 'https://vmtvghkicidatwyzttic.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZl9pZCI6InZtdHZnaGtpY2lkYXR3eXp0dGljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzOTY3MTAsImV4cCI6MjA1ODAzMjcxMH0.tXm4h4m5M-f3hG4W-6J7W3A7wFOnqYUPA1cuGeQ';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const CRYPTO_PASS = "AlManer-Secure-Key-2025-PW-Clone";
