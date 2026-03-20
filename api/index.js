@@ -199,54 +199,52 @@ export default async function handler(req, res) {
       if (body) headers['Content-Type'] = 'application/json';
 
       // Fallback Strategy for media-secure
-      let pRes = await nodeFetch(`https://api.penpencil.co/${target}${finalSearch}`, {
-        method: req.method, headers, body
-      });
+      const cid = qs.get('childId') || '';
+      const bid = qs.get('batchId') || target.split('/batches/').pop()?.split('/')[0] || '';
+      const sid = qs.get('subjectId') || '';
 
-      // If 404 and is media-secure, try fallbacks
-      if (pRes.statusCode === 404 && target.includes('media-secure')) {
-        // Fallback 1: Try alternate v2/v3
-        const altTarget = target.includes('/v2/') ? target.replace('/v2/', '/v3/') : target.replace('/v3/', '/v2/');
-        pRes = await nodeFetch(`https://api.penpencil.co/${altTarget}${finalSearch}`, {
-          method: req.method, headers, body
-        });
+      const patterns = [
+        `https://api.penpencil.co/${target}${finalSearch}`,
+        `https://api.penpencil.co/${target.includes('/v2/') ? target.replace('/v2/', '/v3/') : target.replace('/v3/', '/v2/')}${finalSearch}`,
+        `https://api.penpencil.co/v3/media-secure${finalSearch}`,
+        cid ? `https://api.penpencil.co/v3/media-secure/${cid}${finalSearch}` : null,
+        bid ? `https://api.penpencil.co/v3/batches/${bid}/details?type=media-secure&childId=${cid}&subjectId=${sid}` : null
+      ].filter(Boolean);
 
-        // Fallback 2: Try root-level media-secure (v3/media-secure?batchId=...)
-        if (pRes.statusCode === 404) {
-          pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure${finalSearch}`, {
-            method: req.method, headers, body
-          });
+      let lastRes = null;
+      let tried = [];
+
+      for (const tUrl of patterns) {
+        tried.push(tUrl);
+        const attempt = await nodeFetch(tUrl, { method: req.method, headers, body });
+        if (attempt.statusCode !== 404) {
+          lastRes = attempt;
+          break;
         }
-
-        // Fallback 4: Try media-specific path (/v3/media-secure/{childId}?batchId=...)
-        if (pRes.statusCode === 404 && qs.has('childId')) {
-          const cid = qs.get('childId');
-          pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure/${cid}${finalSearch}`, {
-            method: req.method, headers, body
-          });
-          
-          if (pRes.statusCode === 404) {
-            pRes = await nodeFetch(`https://api.penpencil.co/v2/media-secure/${cid}${finalSearch}`, {
-              method: req.method, headers, body
-            });
-          }
-        }
-
-        // Fallback 5: Clean retry (no organizationId) on the final root endpoint
-        if (pRes.statusCode === 404) {
-          const { organizationId, ...cleanHeaders } = headers;
-          pRes = await nodeFetch(`https://api.penpencil.co/v3/media-secure${finalSearch}`, {
-            method: req.method, headers: cleanHeaders, body
-          });
-        }
+        lastRes = attempt;
       }
 
+      // Final Attempt: No organizationId
+      if (lastRes && lastRes.statusCode === 404) {
+        const { organizationId, ...cleanHeaders } = headers;
+        const finalTry = `https://api.penpencil.co/v3/media-secure${finalSearch}`;
+        tried.push(finalTry + " (no org)");
+        lastRes = await nodeFetch(finalTry, { method: req.method, headers: cleanHeaders, body });
+      }
+
+      const pRes = lastRes;
       const cType = pRes.headers.get('content-type') || '';
-      if (cType.includes('application/json')) {
-        return send(res, pRes.statusCode || 200, await pRes.json());
+      if (pRes.statusCode === 200 && cType.includes('application/json')) {
+        return send(res, 200, await pRes.json());
       } else {
         const text = await pRes.text();
-        return send(res, pRes.statusCode || 200, { success: false, statusCode: pRes.statusCode, data: text });
+        return send(res, pRes.statusCode || 200, { 
+          success: false, 
+          statusCode: pRes.statusCode, 
+          msg: "All playback authorization patterns failed.",
+          tried: tried,
+          data: text 
+        });
       }
     }
 
