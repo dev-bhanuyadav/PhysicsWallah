@@ -4,27 +4,49 @@ import { ArrowLeft, ShieldAlert, Play, Pause, Maximize, Minimize } from 'lucide-
 
 declare global { interface Window { Hls?: any; } }
 
-async function decryptRenderPayload(encodedText: string, keyStr: string) {
-  const [ivHex, cipherHex] = encodedText.split(':');
-  const iv = new Uint8Array(ivHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
-  const cipherTextWithTag = new Uint8Array(cipherHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
-  
+/**
+ * Null-padded AES-256 key creation as provided by user
+ */
+async function createKey(secret: string) {
   const encoder = new TextEncoder();
-  // Try SHA-256 of keyStr as the key (Standard for GCM)
-  const keyBuffer = await window.crypto.subtle.digest("SHA-256", encoder.encode(keyStr));
-  const cryptoKey = await window.crypto.subtle.importKey("raw", keyBuffer, { name: "AES-GCM" }, false, ["decrypt"]);
-  
-  try {
-    const decryptedBuffer = await window.crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      cryptoKey,
-      cipherTextWithTag
-    );
-    return JSON.parse(new TextDecoder().decode(decryptedBuffer));
-  } catch (e) {
-    // If GCM fails, it might be a different derivation or CBC
-    throw new Error("Decryption failed. Please check the key 'maggikhalo'.");
+  const encoded = encoder.encode(secret);
+  const keyBuffer = new Uint8Array(32);
+  for (let i = 0; i < 32; i++) {
+    keyBuffer[i] = i < encoded.length ? encoded[i] : 0;
   }
+  return window.crypto.subtle.importKey(
+    "raw",
+    keyBuffer,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
+  );
+}
+
+/**
+ * Main decrypt function for Render API
+ */
+async function decryptRenderPayload(payload: string, secretKey: string) {
+  const decoder = new TextDecoder();
+  const [ivHex, cipherHex] = payload.split(":");
+  if (!ivHex || !cipherHex) throw new Error("Invalid encrypted payload format");
+
+  const hexToBytes = (hex: string) => {
+    const pairs = hex.match(/.{1,2}/g);
+    return new Uint8Array(pairs!.map(b => parseInt(b, 16)));
+  };
+
+  const iv = hexToBytes(ivHex);
+  const ciphertext = hexToBytes(cipherHex);
+  const key = await createKey(secretKey);
+
+  const decrypted = await window.crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    ciphertext
+  );
+
+  return JSON.parse(decoder.decode(decrypted));
 }
 
 function formatTime(seconds: number) {
@@ -60,7 +82,6 @@ export default function VideoPlayer() {
       setVideoLoading(true); setVideoError('');
       try {
         setStatusText('Requesting Render Stream Grant...');
-        // Call the Vercel proxy which forwards to Render
         const res = await fetch(`/api/v1/pw-proxy/render/video?batchId=${batchId}&subjectId=${subjectId}&childId=${childId}&_v=${Date.now()}`);
         const meta = await res.json();
         
@@ -68,7 +89,7 @@ export default function VideoPlayer() {
         if (!isMounted) return;
 
         setStatusText('Decrypting Render Payload...');
-        // Render API returns { data: "iv:ciphertext" }
+        // Correct decryption using user-provided null-padding logic
         const payload = await decryptRenderPayload(meta.data, "maggikhalo");
         const streamUrl = payload.streamUrl || payload.url;
         const keyHex = payload.keyHex;
