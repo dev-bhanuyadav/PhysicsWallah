@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, PlayCircle, Clock, Calendar, Paperclip, MoreVertical, BookOpen } from 'lucide-react';
+import { ArrowLeft, PlayCircle, Clock, Calendar, MoreVertical, BookOpen, Lock } from 'lucide-react';
 import { listBatches } from '@/lib/batchesStorage';
 import { decryptToken } from '@/utils/cryptoUtils';
 
@@ -24,15 +24,20 @@ export default function TopicContents() {
 
   const TABS = [
     { name: 'Lectures', id: 'videos', locked: false },
-    { name: 'Notes', id: 'notes', locked: false },
-    { name: 'DPP', id: 'dpp', locked: false },
-    { name: 'DPP PDF', id: 'dpp_pdf', locked: false },
-    { name: 'DPP VIDEOS', id: 'dpp_videos', locked: false },
+    { name: 'Notes', id: 'notes', locked: true },
+    { name: 'DPP', id: 'dpp', locked: true },
+    { name: 'DPP PDF', id: 'dpp_pdf', locked: true },
+    { name: 'DPP VIDEOS', id: 'dpp_videos', locked: true },
   ];
 
   useEffect(() => {
     const fetchContents = async () => {
       const currentTab = TABS.find(t => t.name === activeTab);
+      if (currentTab?.locked) {
+        setContents([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError('');
       
@@ -93,12 +98,13 @@ export default function TopicContents() {
             <button 
               key={tab.name}
               onClick={() => setActiveTab(tab.name)}
-              className={`whitespace-nowrap px-6 py-2.5 text-[14px] font-bold rounded-2xl border transition-all ${
+              className={`whitespace-nowrap px-6 py-2.5 text-[14px] font-bold rounded-2xl border transition-all flex items-center gap-2 ${
                 activeTab === tab.name 
                   ? 'bg-blue-50/80 text-blue-600 border-blue-200/50 shadow-sm ring-1 ring-blue-100' 
                   : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600'
               }`}
             >
+              {tab.locked && <Lock size={14} className="mb-0.5" />}
               {tab.name}
             </button>
           ))}
@@ -132,25 +138,10 @@ export default function TopicContents() {
                       <PlayCircle size={28} className="text-blue-600 ml-1" fill="currentColor" />
                     </div>
                   </div>
-                  
-                  {/* PW Logo Overlay (Small) */}
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full p-0.5 shadow-sm">
-                    <img src="https://th.bing.com/th/id/OIP.8vIGm3BuOD31_XaWr2FhMgHaHa?w=175&h=180&c=7&r=0&o=7&pid=1.7&rm=3" className="w-full h-full object-contain" />
-                  </div>
                 </div>
                 
                 {/* Info Area */}
                 <div className="p-5 flex-1 flex flex-col">
-                  {/* Teacher Info */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-                      <img 
-                        src="https://static.pw.live/5eb393ee95fab7468a79d189/ADMIN/97e9f801-6c2e-4b41-9494-b778c8577002.png" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="text-[14px] font-bold text-slate-500">By {item.faculty?.[0]?.name || 'PW Team'}</span>
-                  </div>
 
                   {/* Metadata Bar */}
                   <div className="flex items-center justify-between text-[11px] font-black text-slate-400 mb-3 border-t border-slate-50 pt-3">
@@ -158,15 +149,12 @@ export default function TopicContents() {
                     <div className="flex items-center gap-1.5"><Clock size={13} className="text-slate-300" /> {item.videoDetails?.duration || '00:00:00'}</div>
                   </div>
                   
-                  {/* Title & Attachment */}
+                  {/* Title */}
                   <div className="mt-auto flex items-end justify-between gap-3">
-                    <h3 className="text-[15px] font-black text-[#1F2937] leading-tight line-clamp-2 flex-1">
+                    <h3 className="text-[17px] font-black text-[#1F2937] leading-tight line-clamp-2 flex-1">
                       {item.topic || item.name}
                     </h3>
                     <div className="flex items-center gap-1">
-                      <div className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
-                        <Paperclip size={18} strokeWidth={2.5} />
-                      </div>
                       <div className="p-2 text-slate-300 hover:text-slate-500 transition-colors">
                         <MoreVertical size={18} />
                       </div>
